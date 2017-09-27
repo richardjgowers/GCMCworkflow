@@ -1,0 +1,11 @@
+# Ignore python bytecoded files
+.cache/
+*egg-info
+*.py[c|o]
+*.[oa]
+*~
+*.bak
+*.so
+*.egg
+\.coverage
+tests/htmlcov/

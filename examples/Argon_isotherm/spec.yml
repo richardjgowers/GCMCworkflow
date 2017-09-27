@@ -1,0 +1,6 @@
+pressures: [100000, 300000, 500000, 1000000, 2000000, 3000000]
+temperatures: [298.0]
+template: input
+ncycles: 30000
+nparallel: 3
+name: argon298

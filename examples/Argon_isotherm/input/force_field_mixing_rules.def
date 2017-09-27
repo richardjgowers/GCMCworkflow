@@ -1,0 +1,17 @@
+# general rule for shifted vs truncated
+shifted
+# general rule tailcorrections
+no
+# number of defined interactions
+8
+# type interaction
+Zn1 lennard-jones  0.42   2.70
+O1  lennard-jones  700.0  2.98
+O2  lennard-jones  70.5   3.11
+C1  lennard-jones  48.5   3.74
+C2  lennard-jones  47.86  3.47
+C3  lennard-jones  47.86  3.47
+H1  lennard-jones  7.65   2.85
+Ar  lennard-jones  126.11 3.29
+# general mixing rule for Lennard-Jones
+Jorgensen

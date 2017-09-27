@@ -1,0 +1,36 @@
+SimulationType                MonteCarlo
+NumberOfCycles                10000
+NumberOfInitializationCycles  0
+PrintEvery                    10  # 100 000 steps
+PrintPropertiesEvery          10  # 10 000 steps
+RestartFile                   no
+
+# Restart and crash-recovery
+ContinueAfterCrash              no        # Write a binary file (binary restart.dat). 
+WriteBinaryRestartFileEvery     1000      # The output frequency of the crash-recovery file.
+
+Forcefield                    IRMOF-1_K.Walton_truncated
+CutOffVDW                     11.0
+ChargeMethod                  None  #CoulombShifted or Ewald
+#CutOffChargeCharge            25.8
+#EwaldPrecision                1e-6
+
+#UseChargesFromCIFFile         yes
+
+Framework 0
+FrameworkName IRMOF-1
+UnitCells 1 1 1
+HeliumVoidFraction 0.78
+ExternalTemperature 298.0
+ExternalPressure  1000000  # 10 bar
+Movies no
+WriteMoviesEvery    10000  # 100 000 steps
+
+# Grids
+NumberOfGrids 0
+
+Component 0 MoleculeName             Ar
+            TranslationProbability   0.25
+            SwapProbability          0.75
+            CreateNumberOfMolecules  0
+
