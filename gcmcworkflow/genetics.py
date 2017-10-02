@@ -282,7 +282,7 @@ class ManipulateForcefield(fw.FiretaskBase):
 @xs
 class EvaluateResult(fw.FiretaskBase):
     """Calculate error of result"""
-    required_params = ['reference']
+    required_params = ['reference', 'fmt', 'temperature', 'pressure']
 
     @staticmethod
     def grab_result(loc, fmt):
@@ -305,7 +305,7 @@ class EvaluateResult(fw.FiretaskBase):
 
 
     def run_task(self, fw_spec):
-        result = self.grab_result(fw_spec['simtree'], fw_spec['format'])
+        result = self.grab_result(fw_spec['simtree'], self['fmt'])
 
         ref = self['reference']
         my_fitness = abs(result - ref) / ref
@@ -315,8 +315,8 @@ class EvaluateResult(fw.FiretaskBase):
             mod_spec=[{
                 '_push': {
                     'error': my_fitness,
-                    'results_array': (fw_spec['temperature'],
-                                      fw_spec['pressure'],
+                    'results_array': (self['temperature'],
+                                      self['pressure'],
                                       result, 1, 1),
                 }
             }],

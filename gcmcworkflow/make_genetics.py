@@ -121,19 +121,25 @@ def Sim_FW(temperature, pressure, ref, generation_id, candidate_id, ff_updater,
 
     return fw.Firework(
         [
-            CopyTemplate(),
+            CopyTemplate(
+                temperature=temperature,
+                pressure=pressure,
+                fmt='raspa',
+                parallel_id=generation_id,
+            ),
             ManipulateForcefield(
                 candidate_id=candidate_id,
                 updater=ff_updater,
             ),
             RunSimulation(),
-            EvaluateResult(reference=ref),
+            EvaluateResult(
+                reference=ref,
+                fmt='raspa',
+                temperature=temperature,
+                pressure=pressure,
+            ),
         ],
         spec={
-            'temperature': temperature,
-            'pressure': pressure,
-            'parallel_id': generation_id,
-            'format': 'raspa',
             '_category': wf_name,
         },
         parents=parent,
