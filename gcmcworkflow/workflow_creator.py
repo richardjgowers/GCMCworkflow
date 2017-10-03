@@ -106,7 +106,7 @@ def make_Simfireworks(parent_fw, T, P, ncycles, C, simfmt, category,
         sims.append(fw.Firework(
             [gcwf.firetasks.CopyTemplate(fmt=simfmt, temperature=T, pressure=P,
                                          parallel_id=i, ncycles=ncycles),
-             gcwf.firetasks.RunSimulation(),
+             gcwf.firetasks.RunSimulation(fmt=simfmt),
              gcwf.firetasks.AnalyseSimulation(fmt=simfmt, parallel_id=i)],
             spec={
                 'generation': 1,

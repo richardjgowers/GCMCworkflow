@@ -53,7 +53,6 @@ import numpy as np
 import pandas as pd
 import os
 import shutil
-import stat
 import subprocess
 
 # Import format specific tools
@@ -168,16 +167,19 @@ class CreateRestart(fw.FiretaskBase):
 @xs
 class RunSimulation(fw.FiretaskBase):
     """Take a simulation directory and run it"""
+    required_params = ['fmt']
+
+    bin_name = {
+        'raspa': 'simulate',
+    }
+
     def run_task(self, fw_spec):
         old_dir = os.getcwd()
         os.chdir(fw_spec['simtree'])
-        os.chmod('run.sh',
-                 (os.stat('run.sh').st_mode
-                  | stat.S_IXUSR
-                  | stat.S_IXGRP
-                  | stat.S_IXOTH))
+
+        cmd = self.bin_name[self['fmt']]
         try:
-            p = subprocess.run('./run.sh',
+            p = subprocess.run(cmd,
                                check=True,
                                shell=True,
                                stdout=subprocess.PIPE,

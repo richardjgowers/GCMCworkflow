@@ -131,7 +131,7 @@ def Sim_FW(temperature, pressure, ref, generation_id, candidate_id, ff_updater,
                 candidate_id=candidate_id,
                 updater=ff_updater,
             ),
-            RunSimulation(),
+            RunSimulation(fmt='raspa'),
             EvaluateResult(
                 reference=ref,
                 fmt='raspa',
