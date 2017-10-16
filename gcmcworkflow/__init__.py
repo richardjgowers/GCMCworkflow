@@ -1,6 +1,5 @@
 __version__ = '0.0.1'
 
-RESULTS_FILENAME = 'results.csv'
 from .errors import NotEquilibratedError
 
 from . import utils

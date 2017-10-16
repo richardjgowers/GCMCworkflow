@@ -57,7 +57,6 @@ import subprocess
 
 # Import format specific tools
 from . import NotEquilibratedError
-from . import RESULTS_FILENAME
 
 from . import raspatools
 from . import utils
