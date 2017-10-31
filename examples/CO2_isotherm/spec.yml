@@ -1,0 +1,6 @@
+pressures: [5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000]
+temperatures: [208.0]
+template: co2input
+ncycles: 30000
+nparallel: 3
+name: CO2IRMOF
