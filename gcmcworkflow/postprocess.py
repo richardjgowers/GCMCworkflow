@@ -4,7 +4,7 @@
 import fireworks as fw
 import pandas as pd
 
-from gcmcworkflow import utils, RESULTS_FILENAME
+from gcmcworkflow import utils
 
 
 def gen_restart_sims(old_generation, T, P):
