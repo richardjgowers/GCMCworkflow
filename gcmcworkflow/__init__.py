@@ -15,3 +15,5 @@ from . import firetasks
 
 from . import genetics
 from . import make_genetics
+
+from .poreblazer import PoreblazerTask
