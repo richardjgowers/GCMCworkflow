@@ -1,4 +1,3 @@
 #!/bin/bash
 
-$RASPA_DIR/bin/simulate simulation.input
-
+simulate simulation.input

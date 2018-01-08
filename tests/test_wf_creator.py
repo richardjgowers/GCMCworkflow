@@ -104,7 +104,7 @@ class TestTemplateCopy(object):
 
 @pytest.fixture
 def run_raspa(short_raspa, launchpad):
-    job = fw.Firework([gcwf.firetasks.RunSimulation()],
+    job = fw.Firework([gcwf.firetasks.RunSimulation(fmt='raspa')],
                        spec={'simtree': short_raspa})
     launchpad(fw.Workflow([job]))
 
