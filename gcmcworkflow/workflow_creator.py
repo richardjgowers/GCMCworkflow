@@ -13,7 +13,13 @@ def make_workflow(spec, simple=False):
     ----------
     spec : dict
       has all the information for workflow
+    simple : bool, optional
+      use decorrelation analysis to determine if to run more sims
 
+    Returns
+    -------
+    workflow : fw.Workflow
+      Workflow object ready to submit to LaunchPad
     """
     temperatures = spec['temperatures']
     pressures = spec['pressures']

@@ -1,6 +1,8 @@
 import yaml
 import os
 
+from hydraspa import util
+
 
 def read_spec(path):
     """Read a spec file, return a dict of what it means
@@ -26,7 +28,8 @@ def read_spec(path):
     except KeyError:
         output['name'] = 'GCMCWorkflow'
     try:
-        output['pressures'] = [float(v) for v in  raw['pressures']]
+        output['pressures'] = [util.conv_to_number(v, float)
+                               for v in  raw['pressures']]
     except KeyError:
         output['pressures'] = [None]
     try:
