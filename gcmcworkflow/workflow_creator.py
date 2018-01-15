@@ -27,9 +27,6 @@ def make_workflow(spec, simple=False):
     ncycles = spec['ncycles']
     template = spec['template']
     wfname = spec['name']
-    # Adjust simulation length according to nparallel
-    if not ncycles is None:  # can be none to use template default
-        ncycles = ncycles // nparallel
 
     if not isinstance(template, dict):
         # if passed path to template, slurp it up
