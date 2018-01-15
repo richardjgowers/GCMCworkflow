@@ -4,6 +4,17 @@ import os
 from hydraspa import util
 
 
+def generate_spec():
+    """Create a blank specfile"""
+    with open('workflow_spec.yml', 'w') as out:
+        out.write('name:                    # name of the workflow, must be unique on launchpad\n')
+        out.write('template:                # path to directory to use as template\n')
+        out.write('pressures: [1k, 2k, 3k]  # list of pressures to run, can use k/M suffix \n')
+        out.write('temperatures: [1, 2, 3]  # list of temperatures to run\n')
+        out.write('nparallel: 1             # how many replicas of each T&P to run\n')
+        out.write('ncycles:                 # length of each simulation\n')
+
+
 def read_spec(path):
     """Read a spec file, return a dict of what it means
 
