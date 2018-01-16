@@ -39,8 +39,8 @@ def read_spec(path):
     except KeyError:
         output['name'] = 'GCMCWorkflow'
     try:
-        output['pressures'] = [util.conv_to_number(v, float)
-                               for v in  raw['pressures']]
+        output['pressures'] = [util.conv_to_number(str(v), float)
+                               for v in raw['pressures']]
     except KeyError:
         output['pressures'] = [None]
     try:
