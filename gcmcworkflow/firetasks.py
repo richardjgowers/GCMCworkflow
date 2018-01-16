@@ -245,6 +245,9 @@ class AnalyseSimulation(fw.FiretaskBase):
         # parse results
         results = self.parse_results(self['fmt'], fw_spec['simtree'])
 
+        with open(os.path.join(fw_spec['simtree'], 'results.csv'), 'w') as out:
+            results.to_csv(out)
+
         return fw.FWAction(
             stored_data={'result': results},
             mod_spec=[{
