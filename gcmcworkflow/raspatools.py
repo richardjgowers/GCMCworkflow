@@ -64,6 +64,18 @@ def update_input(treant, T, P, ncycles):
             newfile.write(line)
 
 
+def set_restart(simtree):
+    """Set a simulation input to be a restart"""
+    simfile = os.path.join(simtree, 'simulation.input')
+
+    os.rename(simfile, simfile + '.bak')
+    with open(simfile, 'w') as newfile, open(simfile + '.bak', 'r') as oldfile:
+        for line in oldfile:
+            if 'RestartFile' in line:
+                line = 'RestartFile yes\n'
+            newfile.write(line)
+
+
 def parse_results(tree):
     """Parse results from a Raspa treant
 
