@@ -172,3 +172,13 @@ def unpickle_func(picklestr):
       callable version of the function
     """
     return dill.loads(bytes(picklestr, 'raw_unicode_escape'))
+
+
+def make_series(ts):
+    """Convert ascii representation of series to Pandas Series"""
+    return pd.read_csv(
+        io.StringIO(ts),
+        header=None,
+        index_col=0,
+        squeeze=True,
+    )

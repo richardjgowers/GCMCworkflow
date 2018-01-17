@@ -355,17 +355,8 @@ class SimplePostProcess(fw.FiretaskBase):
     """Without recycle loop"""
     required_params = ['temperature', 'pressure']
 
-    @staticmethod
-    def make_series(ts):
-        return pd.read_csv(
-            io.StringIO(ts),
-            header=None,
-            index_col=0,
-            squeeze=True,
-        )
-
     def run_task(self, fw_spec):
-        timeseries = {p_id: self.make_series(ts)
+        timeseries = {p_id: utils.make_series(ts)
                       for (p_id, ts) in fw_spec['results']}
 
         means = []
