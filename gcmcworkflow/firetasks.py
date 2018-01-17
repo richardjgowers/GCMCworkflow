@@ -48,7 +48,6 @@ SimFirework layout::
 """
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
-import io
 import numpy as np
 import pandas as pd
 import os
@@ -160,6 +159,10 @@ class CreateRestart(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         # self['loc'] is where to create restart from
+
+        # copy over Restart directory from previous simulation
+
+        # modify the simulation.input to use the restart file
         pass
 
 
@@ -212,7 +215,7 @@ class AnalyseSimulation(fw.FiretaskBase):
      - creates results file for this simulation
     """
     required_params = ['fmt']
-    optional_params = ['parallel_id']
+    optional_params = ['parallel_id', 'previous_results']
 
     @staticmethod
     def check_exit(fmt, simpath):
@@ -238,6 +241,16 @@ class AnalyseSimulation(fw.FiretaskBase):
             raise NotImplementedError("Unrecognised format '{}' to parse"
                                       "".format(fmt))
 
+    @staticmethod
+    def prepend_previous(previous, current):
+        previous = utils.make_series(previous)
+
+        # reindex the current timeseries to start after the last one
+        dt = previous.index[1] - previous.index[0]
+        current.index += previous.index.max() + dt
+
+        return previous.append(current)
+
     def run_task(self, fw_spec):
         # check exit
         self.check_exit(self['fmt'], fw_spec['simtree'])
@@ -246,6 +259,9 @@ class AnalyseSimulation(fw.FiretaskBase):
         results = self.parse_results(self['fmt'], fw_spec['simtree'])
 
         utils.save_csv(results, os.path.join(fw_spec['simtree'], 'results.csv'))
+
+        if 'previous_results' in self:
+            results = self.prepend_previous(self['previous_results'], results)
 
         return fw.FWAction(
             stored_data={'result': results},
