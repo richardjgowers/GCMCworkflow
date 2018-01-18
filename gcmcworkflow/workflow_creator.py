@@ -44,12 +44,23 @@ def make_workflow(spec, simple=True):
         name='Template Init'
     )
 
+    if simple:
+        pp_cls = gcwf.firetasks.SimplePostProcess
+    else:
+        pp_cls = gcwf.firetasks.PostProcess
+
     simulations = []  # list of simulation fireworks
     post_processing = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
-        this_condition, this_condition_PP = make_Simfireworks(
-            init, T, P, ncycles, nparallel, fmt, wfname, simple=simple)
-
+        this_condition = make_Simfireworks(
+            init, T, P, ncycles, nparallel, fmt, wfname,
+            generation=1)
+        this_condition_PP = fw.Firework(
+            pp_cls(temperature=T, pressure=P),
+            spec={'_category': wfname},
+            parents=this_condition,
+            name='PostProcess T={} P={}'.format(T, P)
+        )
         simulations.extend(this_condition)
         post_processing.append(this_condition_PP)
 
@@ -64,11 +75,9 @@ def make_workflow(spec, simple=True):
     return wf
 
 
-def make_Simfireworks(parent_fw, T, P, ncycles, C, simfmt, category,
-                      generation=None, simple=False):
+def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
+                      generation)
     """Make many Simfireworks for a given conditions
-
-    Creates the required post processing task
 
     Parameters
     ----------
@@ -80,48 +89,34 @@ def make_Simfireworks(parent_fw, T, P, ncycles, C, simfmt, category,
       pressure
     ncycles : int
       length of simulation
-    C : int
+    nparallel : int
       degree of parallelism
     simfmt : str
       format of the simulation
-    category : str
+    wfname : str
       name for this workflow, so FWorkers can find it
-    generation : int, optional
-      defaults to 1
+    generation : int
+      iteration counter for this condition
     simple : bool, optional
       use SimplePostProcess or not
 
     Returns
     -------
-    sims, post
-      List of SimulationFireworks, and PostProcess Firework
+    sims
+      List of SimulationFireworks
     """
-    if generation is None:
-        generation = 1
-
-    if simple:
-        pp_cls = gcwf.firetasks.SimplePostProcess
-    else:
-        pp_cls = gcwf.firetasks.PostProcess
-
     sims = []
-    for i in range(C):
+    for i in range(nparallel):
         sims.append(fw.Firework(
             [gcwf.firetasks.CopyTemplate(fmt=simfmt, temperature=T, pressure=P,
                                          parallel_id=i, ncycles=ncycles),
              gcwf.firetasks.RunSimulation(fmt=simfmt),
              gcwf.firetasks.AnalyseSimulation(fmt=simfmt, parallel_id=i)],
             spec={
-                'generation': 1,
-                '_category': category,
+                'generation': generation,
+                '_category': wfname,
               },
             parents=[parent_fw],
             name=utils.gen_name(T, P, i)
         ))
-    post = fw.Firework(
-        pp_cls(temperature=T, pressure=P),
-        spec={'_category': category},
-        parents=sims,
-        name='PostProcess T={} P={}'.format(T, P)
-    )
-    return sims, post
+    return sims
