@@ -98,10 +98,11 @@ class InitTemplate(fw.FiretaskBase):
 class CopyTemplate(fw.FiretaskBase):
     """Create a copy of the provided template
 
-    From fw_spec:
+    Attributes:
      - template - path to the template to copy
      - temperature
      - pressure
+     - generation, optional
      - parallel_id, optional
      - ncycles, optional
 
@@ -112,7 +113,7 @@ class CopyTemplate(fw.FiretaskBase):
     Provides: simtree - path to the customised version of the template
     """
     required_params = ['temperature', 'pressure', 'fmt']
-    optional_params = ['parallel_id', 'ncycles']
+    optional_params = ['generation', 'parallel_id', 'ncycles']
 
     @staticmethod
     def update_input(target, fmt, T, P, n):
@@ -122,9 +123,10 @@ class CopyTemplate(fw.FiretaskBase):
             raise NotImplementedError
 
     @staticmethod
-    def copy_template(template, T, P, p_id):
+    def copy_template(template, T, P, gen_id, p_id):
         # where to place this simulation
-        newdir = 'sim_{t}_{p}_v{i}'.format(t=T, p=P, i=p_id)
+        newdir = 'sim_{t}_{p}_gen{g}_v{i}'.format(
+            t=T, p=P, g=gen_id, i=p_id)
         # copy in the template to this newdir
         shutil.copytree(template, newdir)
 
@@ -135,6 +137,7 @@ class CopyTemplate(fw.FiretaskBase):
             fw_spec['template'],
             self['pressure'],
             self['temperature'],
+            self.get('generation', 1),
             self.get('parallel_id', 0),
         )
 
