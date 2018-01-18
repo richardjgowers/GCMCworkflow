@@ -261,22 +261,29 @@ class AnalyseSimulation(fw.FiretaskBase):
         return previous.append(current)
 
     def run_task(self, fw_spec):
+        simtree = fw_spec['simtree']
+        parallel_id = self.get('parallel_id', 0)
+
         # check exit
-        self.check_exit(self['fmt'], fw_spec['simtree'])
+        self.check_exit(self['fmt'], simtree)
 
         # parse results
-        results = self.parse_results(self['fmt'], fw_spec['simtree'])
-
-        utils.save_csv(results, os.path.join(fw_spec['simtree'], 'results.csv'))
+        results = self.parse_results(self['fmt'], simtree)
+        # save csv of results from *this* simulation
+        utils.save_csv(results, os.path.join(simtree, 'this_sim_results.csv'))
 
         if 'previous_results' in self:
             results = self.prepend_previous(self['previous_results'], results)
+        # csv of results from all generations of this simulation
+        utils.save_csv(results, os.path.join(simtree, 'total_results.csv'))
 
         return fw.FWAction(
             stored_data={'result': results},
             mod_spec=[{
-                '_push': {'results': (self.get('parallel_id', 0),
-                                      results.to_csv())}
+                '_push': {
+                    'results': (parallel_id, results.to_csv()),
+                    'simpaths': (parallel_id, simtree),
+                }
             }]
         )
 
