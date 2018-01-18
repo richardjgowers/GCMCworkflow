@@ -76,7 +76,7 @@ def make_workflow(spec, simple=True):
 
 
 def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
-                      generation)
+                      generation):
     """Make many Simfireworks for a given conditions
 
     Parameters
