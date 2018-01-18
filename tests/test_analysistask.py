@@ -48,7 +48,8 @@ def analysis_task_with_previous(successful_raspa, launchpad):
 
 
 def test_analysis_creates_file(analysis_task):
-    assert os.path.exists(os.path.join(analysis_task, 'results.csv'))
+    assert os.path.exists(os.path.join(analysis_task, 'this_sim_results.csv'))
+    assert os.path.exists(os.path.join(analysis_task, 'total_results.csv'))
 
 
 def test_results(analysis_task):
