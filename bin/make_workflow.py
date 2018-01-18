@@ -34,7 +34,7 @@ if __name__ == '__main__':
         gcwf.spec_parser.generate_spec()
     elif args['submit']:
         specs = gcwf.read_spec(args['<specfile>'])
-        wf = gcwf.make_workflow(specs, simple=args['--simple'])
+        wf = gcwf.make_workflow(specs) #, simple=args['--simple'])
 
         if args['--launchpad']:
             lpad_spec = gcwf.read_lpad_spec(args['<lpspec>'])

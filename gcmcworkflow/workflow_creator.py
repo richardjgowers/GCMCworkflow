@@ -6,7 +6,7 @@ import os
 from . import utils
 
 
-def make_workflow(spec, simple=False):
+def make_workflow(spec, simple=True):
     """Create an entire Isotherm creation Workflow
 
     Parameters
