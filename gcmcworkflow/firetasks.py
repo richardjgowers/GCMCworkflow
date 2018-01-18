@@ -24,13 +24,13 @@ SimFirework layout::
                           (Tn, Pn)  # given one condition
                              |
                              | For each parallel task create an instance
-         +-------------------+-------------------+
-         |                   |                   |
-         v                   v                   v
-    CopyTemplate        CopyTemplate        CopyTemplate
-         |<-----------------)|(-----------------)|(-RestartSimulation-+
-         |                   |<-----------------)|(-RestartSimulation-+
-         |                   |                   |<-RestartSimulation-+
+         +-------------------+-------------------+ <------------------+
+         |                   |                   |                    |
+         v                   v                   v                    |
+    CopyTemplate        CopyTemplate        CopyTemplate              |
+         |                   |                   |                    |
+   (CopyRestart?)      (CopyRestart?)      (CopyRestart?)             |
+         |                   |                   |                    |
          v                   v                   v                    |
     RunSimulation       RunSimulation       RunSimulation             |
          |                   |                   |                    |
@@ -155,15 +155,24 @@ class CopyTemplate(fw.FiretaskBase):
 @xs
 class CreateRestart(fw.FiretaskBase):
     """Take a single simulation directory and prepare a continuation of it"""
-    required_params = ['loc']
+    required_params = ['previous_simtree']
+
+    @staticmethod
+    def set_as_restart(simtree):
+        raspatools.set_restart(simtree)
 
     def run_task(self, fw_spec):
-        # self['loc'] is where to create restart from
-
         # copy over Restart directory from previous simulation
+        oldsim = self['previous_simtree']
+        newsim = fw_spec['simtree']
+
+        shutil.copytree(os.path.join(oldsim, 'Restart'),
+                        os.path.join(newsim, 'RestartInitial'))
 
         # modify the simulation.input to use the restart file
-        pass
+        self.set_as_restart(fw_spec['simtree'])
+
+        return fw.FWAction()
 
 
 @xs
@@ -274,54 +283,37 @@ class AnalyseSimulation(fw.FiretaskBase):
 
 @xs
 class PostProcess(fw.FiretaskBase):
-    """Gather results for a given condition and make decisions
-
-    At this point, we are format agnostic:
-     - AnalyseSimulation has created a generic timeseries for each individual
-       sim
-     - Make decisions based only on sim dirs irrespective of what format they
-       are
-    Does:
-    - if not completed, create additional simulations
-    - if finished, allow final step to happen
-
-    # Can use estimates of neq and g to tailor remaining length
-    # ie if g_completed = 10, and g=1e6, need additional 10e6 steps
-    # can then create n_parallel extra sims each with 10e6/n_parallel additional
-    # steps
-    """
+    """Gather results for a given condition and make decisions"""
     required_params = ['temperature', 'pressure']
 
     def run_task(self, fw_spec):
-        sims = dtr.discover(fw_spec['workdir'])
-        # query the results database to pull out relevent simulations
-        mysims = sims.categories.groupby(
-            ['temperature', 'pressure'])[self['temperature'], self['pressure']]
+        timeseries = {p_id: utils.make_series(ts)
+                      for (p_id, ts) in fw_spec['results']}
 
-        # Group together parallel ids across generations
-        timeseries = postprocess.group_timeseries(mysims)
-
-        # Find eq within each timeseries
-        # Find g across all timeseries
-        g_values = {}
-        n_g = {}
-        eq_points = {}
+        # grab the production portion of each timeseries
+        production = {}
         for p_id, ts in timeseries.items():
             eq = analysis.find_eq(ts)
-            # this is the total number of steps between samples?
-            g = analysis.find_g(ts.loc[eq:])
-            # can only take an integer number of samples
-            n_g[p_id] = int((ts.index.max() - eq) / g)
-            eq_points[p_id] = eq
-            g_values[p_id] = g
+            production[p_id] = ts.loc[eq:]
 
-        total_g = sum(n_g.values())
+        # figure out the number of correlations in the production
+        # period we've sampled
+        # using all timeseries at once we can average between them to smooth
+        g = analysis.find_g(production)
 
-        # we're finished if the number of stat. decorrels. is larger
-        # than the required amount
-        # TODO: Make tau_criteria flexible
+        total_g = 0.0
+        for p_id, ts in production.items():
+            total_g += int((ts.index.max() - ts.index.min()) / g)
+
         tau_criteria = 20
-        finished = total_g > tau_criteria
+        if total_g < tau_criteria:
+            # issue restarts
+            return fw.FWAction(
+            )
+        else:
+            # calculate and declare final answer
+            return fw.FWAction(
+            )
 
         if finished:
             # TODO: Maybe write down the final result I've calculated?
@@ -331,7 +323,7 @@ class PostProcess(fw.FiretaskBase):
             # need to define somewhere what our criteria for "enough" is
             uncorr_series = []
 
-            for p_id, ts in timeseries.items():
+            for p_id, ts in production.items():
                 eq = eq_points[p_id]
                 g = g_values[p_id]
                 # grab a few samples
