@@ -40,7 +40,7 @@ def make_workflow(spec, simple=True):
     stuff = utils.escape_template(stuff)
 
     init = fw.Firework(
-        gcwf.firetasks.InitTemplate(contents=stuff),
+        gcwf.firetasks.InitTemplate(contents=stuff, workdir=workdir),
         spec={'_category': wfname},
         name='Template Init'
     )

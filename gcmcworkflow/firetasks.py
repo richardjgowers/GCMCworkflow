@@ -81,10 +81,12 @@ class InitTemplate(fw.FiretaskBase):
      - adds path of template Treant to future Firework specs
     """
     required_params = ['contents']
+    optional_params = ['workdir']
 
     def run_task(self, fw_spec):
         # where the template can be found
-        target = utils.dump_directory('template', self['contents'])
+        target = utils.dump_directory(
+            os.path.join(self.get('workdir', ''), 'template'), self['contents'])
 
         return fw.FWAction(
             update_spec={

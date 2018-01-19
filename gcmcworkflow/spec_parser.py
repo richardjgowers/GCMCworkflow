@@ -39,7 +39,12 @@ def read_spec(path):
         output['name'] = raw['name']
     except KeyError:
         output['name'] = 'GCMCWorkflow'
-    output['workdir'] = raw.get('workdir', '')
+    try:
+        workdir = raw['workdir']
+    except KeyError:
+        output['workdir'] = ''
+    else:
+        output['workdir'] = os.path.abspath(workdir)
 
     try:
         output['pressures'] = [util.conv_to_number(str(v), float)
