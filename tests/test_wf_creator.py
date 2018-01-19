@@ -109,6 +109,7 @@ def run_raspa(short_raspa, launchpad):
     launchpad(fw.Workflow([job]))
 
 class TestSimulationRun(object):
+    @pytest.mark.skip
     def test_run_simulation(self, run_raspa):
         assert os.path.exists('Output')
         assert os.path.exists('stdout')
