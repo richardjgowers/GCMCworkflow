@@ -26,6 +26,7 @@ def make_workflow(spec, simple=True):
     nparallel = spec['nparallel']
     ncycles = spec['ncycles']
     template = spec['template']
+    workdir = spec['workdir']
     wfname = spec['name']
 
     if not isinstance(template, dict):
@@ -53,7 +54,7 @@ def make_workflow(spec, simple=True):
     post_processing = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
         this_condition = make_Simfireworks(
-            init, T, P, ncycles, nparallel, fmt, wfname,
+            init, T, P, ncycles, nparallel, fmt, wfname, workdir,
             generation=1)
         this_condition_PP = fw.Firework(
             pp_cls(temperature=T, pressure=P),
@@ -64,7 +65,7 @@ def make_workflow(spec, simple=True):
         simulations.extend(this_condition)
         post_processing.append(this_condition_PP)
 
-    iso_create = fw.Firework(gcwf.firetasks.IsothermCreate(),
+    iso_create = fw.Firework(gcwf.firetasks.IsothermCreate(workdir=workdir),
                              parents=post_processing,
                              spec={'_category': wfname},
                              name='Isotherm create')
@@ -76,7 +77,7 @@ def make_workflow(spec, simple=True):
 
 
 def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
-                      generation):
+                      workdir, generation):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -95,6 +96,8 @@ def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
       format of the simulation
     wfname : str
       name for this workflow, so FWorkers can find it
+    workdir : str
+      path to where to store results
     generation : int
       iteration counter for this condition
     simple : bool, optional
@@ -109,7 +112,8 @@ def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
     for i in range(nparallel):
         sims.append(fw.Firework(
             [gcwf.firetasks.CopyTemplate(fmt=simfmt, temperature=T, pressure=P,
-                                         parallel_id=i, ncycles=ncycles),
+                                         parallel_id=i, ncycles=ncycles,
+                                         workdir=workdir),
              gcwf.firetasks.RunSimulation(fmt=simfmt),
              gcwf.firetasks.AnalyseSimulation(fmt=simfmt, parallel_id=i)],
             spec={

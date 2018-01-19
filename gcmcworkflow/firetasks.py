@@ -113,7 +113,7 @@ class CopyTemplate(fw.FiretaskBase):
     Provides: simtree - path to the customised version of the template
     """
     required_params = ['temperature', 'pressure', 'fmt']
-    optional_params = ['generation', 'parallel_id', 'ncycles']
+    optional_params = ['workdir', 'generation', 'parallel_id', 'ncycles']
 
     @staticmethod
     def update_input(target, fmt, T, P, n):
@@ -123,10 +123,11 @@ class CopyTemplate(fw.FiretaskBase):
             raise NotImplementedError
 
     @staticmethod
-    def copy_template(template, T, P, gen_id, p_id):
+    def copy_template(workdir, template, T, P, gen_id, p_id):
         # where to place this simulation
-        newdir = 'sim_{t}_{p}_gen{g}_v{i}'.format(
+        newdir = os.path.join(workdir, 'sim_{t}_{p}_gen{g}_v{i}'.format(
             t=T, p=P, g=gen_id, i=p_id)
+        )
         # copy in the template to this newdir
         shutil.copytree(template, newdir)
 
@@ -134,6 +135,7 @@ class CopyTemplate(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         sim_t = self.copy_template(
+            self.get('workdir', ''),
             fw_spec['template'],
             self['pressure'],
             self['temperature'],
@@ -400,13 +402,15 @@ class SimplePostProcess(fw.FiretaskBase):
 @xs
 class IsothermCreate(fw.FiretaskBase):
     """From all results, create final answer of the isotherm"""
+    optional_params = ['workdir']
+
     def run_task(self, fw_spec):
         # create sorted version
         results = sorted(fw_spec['results_array'],
                          key=lambda x: (x[0], x[1]))
 
-        # write sorted version to file
-        with open('results.out', 'w') as out:
+        outfile = os.path.join(self.get('workdir', ''), results.out)
+        with open(outfile, 'w') as out:
             out.write('temperature,pressure,mean,std,g\n')
             for row in results:
                 out.write(','.join(str(val) for val in row))

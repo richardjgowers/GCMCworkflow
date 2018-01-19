@@ -9,6 +9,7 @@ def generate_spec():
     with open('workflow_spec.yml', 'w') as out:
         out.write('name:                    # name of the workflow, must be unique on launchpad\n')
         out.write('template:                # path to directory to use as template\n')
+        out.write('workdir:                 # path to store results in\n')
         out.write('pressures: [1k, 2k, 3k]  # list of pressures to run, can use k/M suffix \n')
         out.write('temperatures: [1, 2, 3]  # list of temperatures to run\n')
         out.write('nparallel: 1             # how many replicas of each T&P to run\n')
@@ -38,6 +39,8 @@ def read_spec(path):
         output['name'] = raw['name']
     except KeyError:
         output['name'] = 'GCMCWorkflow'
+    output['workdir'] = raw.get('workdir', '')
+
     try:
         output['pressures'] = [util.conv_to_number(str(v), float)
                                for v in raw['pressures']]
