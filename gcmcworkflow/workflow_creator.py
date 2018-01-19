@@ -30,20 +30,30 @@ def make_workflow(spec, simple=True):
     wfname = spec['name']
 
     if not isinstance(template, dict):
+        dict_template = False
+        # Passed path to template
         # if passed path to template, slurp it up
+
+        # old method of slurping up directory
         stuff = utils.slurp_directory(template)
     else:
+        dict_template = True
+        # Else passed dict of stuff
         stuff = template
 
-    fmt = utils.guess_format(stuff)
-
+    simfmt = utils.guess_format(stuff)
     stuff = utils.escape_template(stuff)
 
-    init = fw.Firework(
-        gcwf.firetasks.InitTemplate(contents=stuff, workdir=workdir),
-        spec={'_category': wfname},
-        name='Template Init'
-    )
+    if dict_template:
+        init = fw.Firework(
+            gcwf.firetasks.InitTemplate(contents=stuff, workdir=workdir),
+            spec={'_category': wfname},
+            name='Template Init'
+        )
+        setup = [init]
+    else:
+        init = None
+        setup = []
 
     if simple:
         pp_cls = gcwf.firetasks.SimplePostProcess
@@ -53,9 +63,21 @@ def make_workflow(spec, simple=True):
     simulations = []  # list of simulation fireworks
     post_processing = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
-        this_condition = make_Simfireworks(
-            init, T, P, ncycles, nparallel, fmt, wfname, workdir,
-            generation=1)
+        this_condition = [
+            fw.Firework(
+                [gcwf.firetasks.CopyTemplate(fmt=simfmt, temperature=T,
+                                             pressure=P, parallel_id=i,
+                                             ncycles=ncycles, workdir=workdir),
+                 gcwf.firetasks.RunSimulation(fmt=simfmt),
+                 gcwf.firetasks.AnalyseSimulation(fmt=simfmt, parallel_id=i)],
+                spec={
+                    'generation': 1,
+                    'template': template,
+                    '_category': wfname,
+                },
+                parents=init,
+                name=utils.gen_name(T, P, i),
+            ) for i in range(nparallel)]
         this_condition_PP = fw.Firework(
             pp_cls(temperature=T, pressure=P),
             spec={'_category': wfname},
@@ -70,7 +92,7 @@ def make_workflow(spec, simple=True):
                              spec={'_category': wfname},
                              name='Isotherm create')
 
-    wf = fw.Workflow([init] + simulations + post_processing + [iso_create],
+    wf = fw.Workflow(setup + simulations + post_processing + [iso_create],
                      name=wfname)
 
     return wf
