@@ -186,7 +186,7 @@ class RunSimulation(fw.FiretaskBase):
     required_params = ['fmt']
 
     bin_name = {
-        'raspa': 'simulate',
+        'raspa': '$RASPA_DIR/bin/simulate',
     }
 
     def run_task(self, fw_spec):
