@@ -35,6 +35,11 @@ def in_working_dir(tmpdir):
 
 @pytest.fixture
 def sample_input(tmpdir):
+    """A working template directory
+
+    has "simple_spec" for creating workflow
+    Contains a directory called 'template' holding a Raspa input
+    """
     p = tmpdir.join('sample_input').strpath
 
     shutil.copytree(os.path.join(HERE, 'sample_input'), p)
@@ -60,6 +65,12 @@ def template_contents():
 
 @pytest.fixture
 def launchpad():
+    """Returns a function that runs a Firework or Workflow
+
+    TODO: Make this not require a reset
+     - Tag the added Workflow with 'test'
+     - Make worker only address 'test' jobs
+    """
     lp = fw.LaunchPad(
         #host='ds013216.mlab.com',
         #name='wftests',
