@@ -2,7 +2,7 @@
 
 Requires 'poreblazer.exe' available in path (conda package available).
 """
-import datreant.core as dtr
+#import datreant.core as dtr
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import os
