@@ -137,21 +137,21 @@ class CopyTemplate(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         sim_t = self.copy_template(
-            self.get('workdir', ''),
-            fw_spec['template'],
-            self['pressure'],
-            self['temperature'],
-            self.get('generation', 1),
-            self.get('parallel_id', 0),
+            workdir=self.get('workdir', ''),
+            template=fw_spec['template'],
+            P=self['pressure'],
+            T=self['temperature'],
+            gen_id=self.get('generation', 1),
+            p_id=self.get('parallel_id', 0),
         )
 
         # Modify input to match the spec
         self.update_input(
-            sim_t,
-            self['fmt'],
-            self['temperature'],
-            self['pressure'],
-            self.get('ncycles', None),
+            target=sim_t,
+            fmt=self['fmt'],
+            T=self['temperature'],
+            P=self['pressure'],
+            n=self.get('ncycles', None),
         )
 
         return fw.FWAction(
