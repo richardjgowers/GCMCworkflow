@@ -1,6 +1,6 @@
 import contextlib
 import fireworks as fw
-from fireworks.core.rocket_launcher import rapidfire
+from fireworks.core.rocket_launcher import launch_rocket
 import os
 import pytest
 import shutil
@@ -65,24 +65,38 @@ def template_contents():
 
 @pytest.fixture
 def launchpad():
-    """Returns a function that runs a Firework or Workflow
-
-    TODO: Make this not require a reset
-     - Tag the added Workflow with 'test'
-     - Make worker only address 'test' jobs
-    """
+    """Returns a function that runs a Firework or Workflow"""
     lp = fw.LaunchPad(
+        # TODO: Make this work via env variables for portability
         #host='ds013216.mlab.com',
         #name='wftests',
         #port=13216,
         #username='test',
         #password='dude',
     )
-    lp.reset('', require_password=False)
+    #lp.reset('', require_password=False)
 
-    def do_launch(wf):
-        lp.add_wf(wf)
-        return rapidfire(lp, fw.FWorker())
+    def do_launch(thingy):
+        """wf - firework or Workflow"""
+        id_map = lp.add_wf(thingy)
+        # id_map is dict of {old: new ids}
+        fw_ids = list(id_map.values())
+
+        num_ran = 0
+        # run all fireworks from the Workflow we just added
+        while True:
+            result = lp.fireworks.find_one(
+                {'fw_id': {'$in': fw_ids}, 'state': 'READY'},
+                projection={'fw_id': True})
+            if result is not None:
+                launch_rocket(lp, fw_id=result['fw_id'])
+                num_ran += 1
+            else:
+                break
+        if num_ran < len(fw_ids):
+            raise ValueError("Added workflow didn't complete")
+
+        return
 
     return do_launch
 
