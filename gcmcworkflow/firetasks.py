@@ -127,9 +127,12 @@ class CopyTemplate(fw.FiretaskBase):
     @staticmethod
     def copy_template(workdir, template, T, P, gen_id, p_id):
         # where to place this simulation
-        newdir = os.path.join(workdir, 'sim_{t}_{p}_gen{g}_v{i}'.format(
-            t=T, p=P, g=gen_id, i=p_id)
-        )
+        newdir = os.path.join(workdir, utils.gen_sim_path(T, P, gen_id, p_id))
+
+        # if exists, remove first
+        # this happens when a fizzle gets restarted
+        if os.path.exists(newdir):
+            shutil.rmtree(newdir)
         # copy in the template to this newdir
         shutil.copytree(template, newdir)
 
