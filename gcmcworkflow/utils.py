@@ -34,6 +34,25 @@ def gen_name(T, P, idx):
     name += " v{}".format(idx)
     return name
 
+def gen_sim_path(T, P, gen_id, p_id):
+    """Generate a path name for a simulation
+
+    Parameters
+    ----------
+    T, P : float
+      temperature and pressure
+    gen_id : int
+      generation id, iteration number of simulation
+    p_id : int
+      parallel id, index within a particular generation
+
+    Returns
+    -------
+    path : str
+    """
+    return 'sim_{t}_{p}_gen{g}_v{i}'.format(
+        t=T, p=P, g=gen_id, i=p_id
+    )
 
 def tail(fn, n):
     """Similar to 'tail -n *n* *fn*'

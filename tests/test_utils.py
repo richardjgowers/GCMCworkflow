@@ -66,3 +66,8 @@ def test_pickling_roundtrip():
     new = gcwf.utils.unpickle_func(pickstr)
 
     assert new(1, 2) == 12
+
+def test_gen_sim_path():
+    pth = gcwf.utils.gen_sim_path(123.0, 200.0, 1, 2)
+
+    assert pth == 'sim_123.0_200.0_gen1_v2'
