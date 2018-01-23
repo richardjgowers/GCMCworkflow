@@ -285,7 +285,7 @@ class AnalyseSimulation(fw.FiretaskBase):
         utils.save_csv(results, os.path.join(simtree, 'total_results.csv'))
 
         return fw.FWAction(
-            stored_data={'result': results},
+            stored_data={'result': results.to_csv()},
             mod_spec=[{
                 '_push': {
                     'results': (parallel_id, results.to_csv()),
