@@ -3,7 +3,7 @@ import gcmcworkflow as gcwf
 
 import os
 
-def test_already_existing(sample_input, launchpad):
+def test_already_existing(sample_input, launchpad, template_contents):
     """Check that CopyTemplate correctly overwrites an existing Simulation"""
     T = 290.0
     P = 100.0
@@ -31,3 +31,5 @@ def test_already_existing(sample_input, launchpad):
 
     assert os.path.exists(newdir)
     assert not os.path.exists(os.path.join(newdir, 'thing.txt'))
+    for fn in template_contents:
+        assert os.path.exists(os.path.join(newdir, fn))
