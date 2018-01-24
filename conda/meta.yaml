@@ -1,0 +1,27 @@
+package:
+  name: gcmcworkflow
+  version: 0.0.1
+
+source:
+  path: ../
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - datreant.core
+    - fireworks
+    - pyyaml
+    - docopt
+    - pandas
+    - pandas >=0.20.0
+    - dill
+    - scipy
+    - statsmodels
+    - hydraspa >=0.0.5
+
+test:
+  imports:
+    - gcmcworkflow

@@ -1,4 +1,4 @@
-Fireworks>=1.4.3
+Fireworks>=1.6.0
 PyYAML
 numpy>=1.12.1
 pandas>=0.20.1
@@ -6,3 +6,4 @@ docopt
 dill
 scipy
 statsmodels
+hydraspa>=0.0.5
