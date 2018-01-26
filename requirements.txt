@@ -7,3 +7,5 @@ dill
 scipy
 statsmodels
 hydraspa>=0.0.5
+terminaltables
+colorclass

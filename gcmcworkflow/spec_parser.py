@@ -65,22 +65,3 @@ def read_spec(path):
         output['ncycles'] = None
 
     return output
-
-
-def read_lpad_spec(path):
-    """Read a launchpad spec file
-
-    Parameters
-    ----------
-    path : str
-      path to the yaml file
-
-    Returns
-    -------
-    out : dict
-      dict of the yaml
-    """
-    with open(path, 'r') as inf:
-        raw = yaml.load(inf)
-
-    return raw

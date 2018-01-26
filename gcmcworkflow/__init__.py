@@ -7,7 +7,7 @@ from . import analysis
 from . import postprocess
 
 from . import spec_parser
-from .spec_parser import read_spec, read_lpad_spec
+from .spec_parser import read_spec
 from . import workflow_creator
 from .workflow_creator import make_workflow
 
@@ -18,3 +18,5 @@ from . import genetics
 from . import make_genetics
 
 from .poreblazer import PoreblazerTask
+
+from . import launchpad_utils

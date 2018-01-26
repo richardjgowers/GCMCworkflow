@@ -19,6 +19,8 @@ def guess_format(stuff):
         raise ValueError("Unknown template format")
 
 
+NAME_PATTERN = re.compile('^Sim')
+SIM_GRAB = re.compile('^Sim T=(\d+\.\d+) P=(\d+\.\d+) v(\d+)')
 def gen_name(T, P, idx):
     """Generate a name for an individual simulation
 
