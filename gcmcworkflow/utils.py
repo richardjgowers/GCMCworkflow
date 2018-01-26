@@ -26,7 +26,7 @@ def gen_name(T, P, idx):
     P - pressure
     idx - parallel id
     """
-    name = ""
+    name = "Sim "
     if T is not None:
         name += "T={} ".format(T)
     if P is not None:
