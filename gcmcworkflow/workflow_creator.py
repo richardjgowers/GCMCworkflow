@@ -92,8 +92,11 @@ def make_workflow(spec, simple=True):
                              spec={'_category': wfname},
                              name='Isotherm create')
 
-    wf = fw.Workflow(setup + simulations + post_processing + [iso_create],
-                     name=wfname)
+    wf = fw.Workflow(
+        setup + simulations + post_processing + [iso_create],
+        name=wfname,
+        metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
+    )
 
     return wf
 
