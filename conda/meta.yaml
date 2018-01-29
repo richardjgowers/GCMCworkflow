@@ -20,6 +20,8 @@ requirements:
     - scipy
     - statsmodels
     - hydraspa >=0.0.5
+    - terminaltables
+    - mmtf-python ==1.0.7
 
 test:
   imports:

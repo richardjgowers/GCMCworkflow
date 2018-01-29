@@ -9,3 +9,4 @@ statsmodels
 hydraspa>=0.0.5
 terminaltables
 colorclass
+mmtf-python==1.0.7

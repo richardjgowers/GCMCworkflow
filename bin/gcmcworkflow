@@ -27,7 +27,13 @@ Options:
   -l --launchpad  Launchpad yaml file (job database)
 """
 from collections import Counter
-from colorclass import Color
+try:
+    from colorclass import Color
+except ImportError:
+    def Color(thing):
+        for letter in ['W', 'R', 'F', 'X']:
+            if letter in thing:
+                return thing
 import docopt
 import terminaltables
 
@@ -41,6 +47,7 @@ STATUS = [
     ('FINISHED', Color('{autogreen}F{/autogreen}')),
     ('FIZZLED', Color('{autored}X{/autored}')),
 ]
+
 
 def build_table(status):
     # generate the table
