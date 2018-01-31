@@ -414,7 +414,7 @@ class IsothermCreate(fw.FiretaskBase):
         results = sorted(fw_spec['results_array'],
                          key=lambda x: (x[0], x[1]))
 
-        outfile = os.path.join(self.get('workdir', ''), results.out)
+        outfile = os.path.join(self.get('workdir', ''), 'results.out')
         with open(outfile, 'w') as out:
             out.write('temperature,pressure,mean,std,g\n')
             for row in results:
