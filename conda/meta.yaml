@@ -1,6 +1,8 @@
+{% set data = load_setup_py_data() %}
+
 package:
   name: gcmcworkflow
-  version: 0.0.2
+  version: {{ data.get('version') }}
 
 source:
   path: ../
@@ -21,7 +23,7 @@ requirements:
     - statsmodels
     - hydraspa >=0.0.5
     - terminaltables
-    - mmtf-python ==1.0.7
+    - mmtf-python
 
 test:
   imports:
