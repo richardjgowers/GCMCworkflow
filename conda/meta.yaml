@@ -1,6 +1,6 @@
 package:
   name: gcmcworkflow
-  version: 0.0.1
+  version: 0.0.2
 
 source:
   path: ../
@@ -26,3 +26,5 @@ requirements:
 test:
   imports:
     - gcmcworkflow
+  commands:
+    - gcmcworkflow -h

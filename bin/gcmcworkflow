@@ -29,7 +29,7 @@ Options:
 from collections import Counter
 try:
     from colorclass import Color
-except ImportError:
+except ModuleNotFoundError:
     def Color(thing):
         for letter in ['W', 'R', 'F', 'X']:
             if letter in thing:
