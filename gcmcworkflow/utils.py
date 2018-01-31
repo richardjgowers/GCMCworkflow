@@ -1,5 +1,6 @@
 import dill
 import io
+import numpy as np
 import os
 import pandas as pd
 import re
@@ -204,3 +205,52 @@ def make_series(ts):
         index_col=0,
         squeeze=True,
     )
+
+
+SPACE_PAT = re.compile(r'l(?:in|og)space\((\d+\.?\d*)[,\s]*(\d+\.?\d*)[,\s]*(\d+)\s*\)')
+def conv_to_number(val):
+    """Convert a string to a sequence number
+
+    Can apply either a k (thousand) or M (million) multiplier
+
+    Parameter
+    ---------
+    val : str
+      String representing the number(s)
+
+    Returns
+    -------
+    values : list
+      sequence of float values
+
+    Example
+    -------
+    100k                       -> (100,000,)
+    5.6M                       -> (5,600,000.0,)
+    logspace(0.001, 100.0, 25) -> geometric spaced points between 0.001 and 100
+    linspace(0.001, 100.0, 25) -> evenly space points between 0.001 and 100
+    """
+    if val.startswith('l'):
+        if val.startswith('logspace'):
+            func = np.geomspace
+        elif val.startswith('linspace'):
+            func = np.linspace
+        else:
+            raise ValueError
+        start, stop, number = re.match(SPACE_PAT, val).groups()
+        start, stop, number = float(start), float(stop), int(number)
+        vals = func(start, stop, number)
+        # round values to 3dp
+        vals = [float('{:.3f}'.format(val)) for val in vals]
+
+        return vals
+    elif val[-1].isalpha():
+        val, suffix = val[:-1], val[-1]
+        try:
+            multi = {'k': 1e3, 'M':1e6}[suffix]
+        except KeyError:
+            raise ValueError("Unrecognised suffix {}".format(suffix))
+    else:
+        multi = 1
+
+    return [float(val) * multi]

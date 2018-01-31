@@ -1,7 +1,8 @@
+import itertools
 import yaml
 import os
 
-from hydraspa import util
+from . import utils
 
 
 def generate_spec():
@@ -47,8 +48,8 @@ def read_spec(path):
         output['workdir'] = os.path.abspath(workdir)
 
     try:
-        output['pressures'] = [util.conv_to_number(str(v), float)
-                               for v in raw['pressures']]
+        output['pressures'] = list(itertools.chain.from_iterable(
+            utils.conv_to_number(str(v)) for v in raw['pressures']))
     except KeyError:
         output['pressures'] = [None]
     try:
