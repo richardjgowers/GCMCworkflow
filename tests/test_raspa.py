@@ -40,10 +40,10 @@ def test_parser(successful_raspa):
     # number of results, from `grep '^Current cyc' * | wc -l`
     assert len(res) == 101
     # from visual inspection:
-    assert res.iloc[0] == 147
-    assert res.iloc[1] == 130
-    assert res.iloc[-2] == 142
-    assert res.iloc[-1] == 133
+    assert res.iloc[0] == pytest.approx(2.9830315349)  # 147 mol/uc
+    assert res.iloc[1] == pytest.approx(2.6380550989)  # 130
+    assert res.iloc[-2] == pytest.approx(2.8815678772)  # 142
+    assert res.iloc[-1] == pytest.approx(2.6989332935)  # 133
 
     assert res.index[0] == 0
     assert res.index[1] == 673
@@ -51,4 +51,4 @@ def test_parser(successful_raspa):
     assert res.index[-1] == 67300
 
     # regression test
-    assert res.mean() == pytest.approx(147.29703)
+    assert res.mean() == pytest.approx(3.0010234057, abs=0.02)

@@ -18,6 +18,10 @@ CYCLE_PAT = re.compile(r'^[C].+?(\d+)(?: out of )(\d+)')
 # eg 'Component 0 ... 150/0/0' -> (150,)
 NABS_PAT = re.compile(r'(?:Component 0).+?(?:(\d+)\/\d\/\d)')
 
+# matches the instantaneous mol/kg on this line:              vvvvvvvvvvvv
+# absolute adsorption:   0.00000 (avg.   0.00000) [mol/uc],   0.0000000000 (avg.   0.0000000000) [mol/kg],   0.0000000000 (avg.   0.0000000000) [mg/g]
+MMOL_PAT = re.compile(r'^(?:\s+absolute adsorption:).+?(\d+\.\d+)(?=\s+\(avg\.\s+\d+\.\d+\)\s+\[mol\/kg\])')
+
 
 def check_exit(tree):
     # check it exists
@@ -77,7 +81,7 @@ def set_restart(simtree):
 
 
 def parse_results(tree):
-    """Parse results from a Raspa treant
+    """Parse results from a Raspa simulation, returns absolute mol/kg
 
     Ignores all values from [Init] period. Simulations shouldn't be using
     this option anyway, as we're dealing with equilibration ourselves.
@@ -90,30 +94,26 @@ def parse_results(tree):
     Returns
     -------
     results : pandas.Series
+      absolute loadings in mol/kg
     """
     # return pandas series of the results
     outfile = glob.glob(os.path.join(tree, 'Output/System_0/*.data'))[0]
 
     cycles = []
     values = []
-    # flip/flop between trying to parse a cycle number
-    # necessary because there are more cycle number labels than nabs lines
-    want_cycle = True
+
     with open(outfile, 'r') as inf:
         for line in inf:
-            if want_cycle:
-                m = re.match(CYCLE_PAT, line)
-                if m is not None:
-                    cycles.append(m.groups()[0])
-                    want_cycle = False
-            else:
-                m = re.match(NABS_PAT, line)
-                if m is not None:
-                    values.append(m.groups()[0])
-                    want_cycle = True
+            cmat = re.search(CYCLE_PAT, line)
+            if cmat:
+                cycles.append(cmat.groups()[0])
+                continue
+            lmat = re.search(MMOL_PAT, line)
+            if lmat:
+                values.append(lmat.groups()[0])
 
     cycles = np.array(cycles, dtype=np.int)
-    values = np.array(values, dtype=np.int)
+    values = np.array(values, dtype=np.float32)
 
     df = pd.Series(values, index=cycles)
     df.name = 'density'
