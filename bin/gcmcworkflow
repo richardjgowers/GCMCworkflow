@@ -35,11 +35,11 @@ import gcmcworkflow as gcwf
 
 
 STATUS = [
-    ('READY', colored('Waiting ', 'white')),
-    ('WAITING', colored('Waiting ', 'white')),
-    ('RUNNING', colored('Running ', 'yellow')),
-    ('FINISHED', colored('Finished ', 'green')),
-    ('FIZZLED', colored('Errored ', 'red')),
+    ('READY', colored('Waiting  ', 'white')),
+    ('WAITING', colored('Waiting  ', 'white')),
+    ('RUNNING', colored('Running  ', 'yellow')),
+    ('COMPLETED', colored('Finished ', 'green')),
+    ('FIZZLED', colored('Errored  ', 'red')),
 ]
 
 
@@ -53,10 +53,8 @@ def build_table(status):
 
         status = ''
         statcount = Counter(v)
-        print(statcount)
         for cat, entry in STATUS:
             status += entry * statcount[cat]
-        print(status)
         table.append([Tcol, P, status])
 
     return terminaltables.SingleTable(table).table
@@ -68,7 +66,7 @@ if __name__ == '__main__':
     if args['genspec']:
         gcwf.spec_parser.generate_spec()
     elif args['submit']:
-        specs = gcwf.read_spec(args['<specfile>'])
+        specs = gcwf.read_spec(args['<wf_specfile>'])
         wf = gcwf.make_workflow(specs) #, simple=args['--simple'])
 
         gcwf.launchpad_utils.submit_workflow(wf, lpspec=args['-l'])
@@ -78,6 +76,6 @@ if __name__ == '__main__':
         print(names)
     elif args['check']:
         stat = gcwf.launchpad_utils.get_workflow_report(
-            args['<wfname>'], lpspec=args['-l'])
+            args['<wf_name>'], lpspec=args['-l'])
 
         print(build_table(stat))
