@@ -23,6 +23,7 @@ requirements:
     - statsmodels
     - hydraspa >=0.0.5
     - terminaltables
+    - termcolor
     - mmtf-python
 
 test:

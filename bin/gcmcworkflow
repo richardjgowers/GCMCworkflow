@@ -17,23 +17,17 @@ To execute the workflow once created, use ``rlaunch``
 
 Usage:
   gcmcworkflow genspec
-  gcmcworkflow submit <specfile> [-l <lpspec>] [--simple]
-  gcmcworkflow list
-  gcmcworkflow check <wfname>
+  gcmcworkflow submit <wf_specfile> [-l <lp_spec>] [--simple]
+  gcmcworkflow list [-l <lp_spec>]
+  gcmcworkflow check <wf_name> [-l <lp_spec>]
 
 Options:
   -h --help
   -v --version
-  -l --launchpad  Launchpad yaml file (job database)
+  -l LAUNCHPAD  Launchpad yaml file (job database)
 """
 from collections import Counter
-try:
-    from colorclass import Color
-except ModuleNotFoundError:
-    def Color(thing):
-        for letter in ['W', 'R', 'F', 'X']:
-            if letter in thing:
-                return thing
+from termcolor import colored
 import docopt
 import terminaltables
 
@@ -41,22 +35,20 @@ import gcmcworkflow as gcwf
 
 
 STATUS = [
-    ('READY', Color('{autowhite}W{/autowhite}')),
-    ('WAITING', Color('{autowhite}W{/autowhite}')),
-    ('RUNNING', Color('{autoyellow}R{/autoyellow}')),
-    ('FINISHED', Color('{autogreen}F{/autogreen}')),
-    ('FIZZLED', Color('{autored}X{/autored}')),
+    ('READY', colored('Waiting ', 'white')),
+    ('WAITING', colored('Waiting ', 'white')),
+    ('RUNNING', colored('Running ', 'yellow')),
+    ('FINISHED', colored('Finished ', 'green')),
+    ('FIZZLED', colored('Errored ', 'red')),
 ]
 
 
 def build_table(status):
     # generate the table
-    print(status)
-    status[80.0, 200.0] = ['READY', 'FINISHED', 'FIZZLED']
-
     table = [['Temperature', 'Pressure', 'Status']]
     prev_T = None
-    for (T, P), v in sorted(status.items(), key=lambda x: (float(x[0][0]), float(x[0][1]), x[1])):
+    for (T, P), v in sorted(status.items(),
+                            key=lambda x: (float(x[0][0]), float(x[0][1]))):
         Tcol = T if T != prev_T else ''
 
         status = ''
@@ -79,13 +71,13 @@ if __name__ == '__main__':
         specs = gcwf.read_spec(args['<specfile>'])
         wf = gcwf.make_workflow(specs) #, simple=args['--simple'])
 
-        gcwf.launchpad_utils.submit_workflow(wf, lpspec=args['<lpspec>'])
+        gcwf.launchpad_utils.submit_workflow(wf, lpspec=args['-l'])
     elif args['list']:
-        names = gcwf.launchpad_utils.get_workflow_names(lpspec=args['<lpspec>'])
+        names = gcwf.launchpad_utils.get_workflow_names(lpspec=args['-l'])
 
         print(names)
     elif args['check']:
         stat = gcwf.launchpad_utils.get_workflow_report(
-            args['<wfname>'], lpspec=args['<lpspec>'])
+            args['<wfname>'], lpspec=args['-l'])
 
         print(build_table(stat))
