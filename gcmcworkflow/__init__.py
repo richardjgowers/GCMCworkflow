@@ -1,5 +1,8 @@
 __version__ = '0.0.4'
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 from .errors import NotEquilibratedError
 
 from . import utils
