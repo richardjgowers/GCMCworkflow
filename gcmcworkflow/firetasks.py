@@ -275,7 +275,7 @@ class AnalyseSimulation(fw.FiretaskBase):
         parallel_id = self.get('parallel_id', 0)
 
         # check exit
-        self.check_exit(self['fmt'], simtree)
+        finished = self.check_exit(self['fmt'], simtree)
 
         # parse results
         results = self.parse_results(self['fmt'], simtree)

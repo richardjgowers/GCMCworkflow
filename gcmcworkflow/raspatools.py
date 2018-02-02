@@ -24,6 +24,17 @@ MMOL_PAT = re.compile(r'^(?:\s+absolute adsorption:).+?(\d+\.\d+)(?=\s+\(avg\.\s
 
 
 def check_exit(tree):
+    """Check
+
+    Returns
+    -------
+    True/False if simulation starteed but did/didn't finish
+
+    Raises
+    ------
+    ValueError
+      if simulation didn't start
+    """
     # check it exists
     try:
         outfile = glob.glob(os.path.join(tree, 'Output/System_0/*.data'))[0]
@@ -33,7 +44,8 @@ def check_exit(tree):
 
     # check last 10 lines of file for this
     if not b'Simulation finished' in utils.tail(outfile, 10):
-        raise ValueError("Output did not exit correctly")
+        #raise ValueError("Output did not exit correctly")
+        return False
 
     return True
 
