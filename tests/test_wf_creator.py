@@ -55,7 +55,7 @@ class TestTemplateCopy(object):
         wf = fw.Workflow([cp1])
         launchpad(wf)
         print(os.listdir())
-        return glob.glob('launch*/sim*')[0]
+        return glob.glob('sim_*')[0]
 
     @staticmethod
     def get_field(t, key):
@@ -78,19 +78,6 @@ class TestTemplateCopy(object):
     def test_template_copy(self, copytemplate, RASPA_FILES):
         for f in RASPA_FILES:
             assert os.path.exists(os.path.join(copytemplate, f))
-
-    def test_template_fill(self, InitTempFW, sample_input, launchpad):
-        cp1 = fw.Firework([
-            gcwf.firetasks.CopyTemplate(
-                temperature=10, pressure=20, ncycles=1234,
-                parallel_id=1, fmt='raspa',
-            ),
-        ],
-                          spec={'generation': 1}
-        )
-        wf = fw.Workflow([InitTempFW, cp1], {InitTempFW: cp1})
-        launchpad(wf)
-
 
     def test_template_pressure(self, copytemplate):
         assert self.get_pressure(copytemplate) == 20
