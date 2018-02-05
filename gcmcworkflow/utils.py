@@ -1,4 +1,5 @@
 import dill
+import glob
 import io
 import numpy as np
 import os
@@ -37,6 +38,8 @@ def gen_name(T, P, idx):
     name += " v{}".format(idx)
     return name
 
+SIM_PATH_PATTERN = re.compile(
+    r'sim_T(\d+\.\d+)_P(\d+\.\d+)_gen(\d+)_v(\d+)')
 def gen_sim_path(T, P, gen_id, p_id):
     """Generate a path name for a simulation
 
@@ -53,9 +56,29 @@ def gen_sim_path(T, P, gen_id, p_id):
     -------
     path : str
     """
-    return 'sim_{t}_{p}_gen{g}_v{i}'.format(
+    return 'sim_T{t}_P{p}_gen{g}_v{i}'.format(
         t=T, p=P, g=gen_id, i=p_id
     )
+
+
+def parse_sim_path(path):
+    """Parse a simulation path name
+
+    Returns
+    -------
+    temperature, pressure, generation, parallel_id
+    """
+    return re.search(SIM_PATH_PATTERN, path).groups()
+
+
+def find_last_generation(workdir, T, P, p_id):
+    """Find the index of the last generation run"""
+    simdirs = glob.glob(os.path.join(workdir, gen_sim_path(T, P, '*', p_id)))
+
+    gens = (parse_sim_path(s)[2] for s in simdirs)
+
+    return max(gens)
+
 
 def tail(fn, n):
     """Similar to 'tail -n *n* *fn*'

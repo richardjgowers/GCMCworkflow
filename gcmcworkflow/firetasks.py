@@ -104,7 +104,6 @@ class CopyTemplate(fw.FiretaskBase):
      - template - path to the template to copy
      - temperature
      - pressure
-     - generation, optional
      - parallel_id, optional
      - ncycles, optional
 
@@ -115,7 +114,7 @@ class CopyTemplate(fw.FiretaskBase):
     Provides: simtree - path to the customised version of the template
     """
     required_params = ['temperature', 'pressure', 'fmt']
-    optional_params = ['workdir', 'generation', 'parallel_id', 'ncycles']
+    optional_params = ['workdir', 'parallel_id', 'ncycles']
 
     @staticmethod
     def update_input(target, fmt, T, P, n):
@@ -125,7 +124,21 @@ class CopyTemplate(fw.FiretaskBase):
             raise NotImplementedError
 
     @staticmethod
-    def copy_template(workdir, template, T, P, gen_id, p_id):
+    def copy_template(workdir, template, T, P, p_id):
+        """Copy template and prepare simulation run
+
+        Parameters
+        ----------
+        workdir : str
+          path to place template
+        template : str
+          template to copy
+        T, P : float
+          temperature and pressure to run
+        p_id : int
+          parallel id of this simulation
+        """
+        gen_id = utils.find_last_generation(workdir, T, P, p_id) + 1
         # where to place this simulation
         newdir = os.path.join(workdir, utils.gen_sim_path(T, P, gen_id, p_id))
 
@@ -144,7 +157,6 @@ class CopyTemplate(fw.FiretaskBase):
             template=fw_spec['template'],
             P=self['pressure'],
             T=self['temperature'],
-            gen_id=self.get('generation', 1),
             p_id=self.get('parallel_id', 0),
         )
 
@@ -272,7 +284,6 @@ class AnalyseSimulation(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         simtree = fw_spec['simtree']
-        parallel_id = self.get('parallel_id', 0)
 
         # check exit
         finished = self.check_exit(self['fmt'], simtree)
@@ -286,6 +297,8 @@ class AnalyseSimulation(fw.FiretaskBase):
             results = self.prepend_previous(self['previous_results'], results)
         # csv of results from all generations of this simulation
         utils.save_csv(results, os.path.join(simtree, 'total_results.csv'))
+
+        parallel_id = self.get('parallel_id', 0)
 
         return fw.FWAction(
             stored_data={'result': results.to_csv()},

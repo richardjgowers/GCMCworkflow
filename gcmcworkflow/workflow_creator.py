@@ -62,7 +62,7 @@ def make_workflow(spec, simple=True):
             parent_fw=init,
             T=T, P=P, ncycles=ncycles, nparallel=nparallel,
             simfmt=simfmt, wfname=wfname,
-            template=template, workdir=workdir, generation=1,
+            template=template, workdir=workdir,
         )
         this_condition_PP = make_PostProcess(
             parent_fw=this_condition,
@@ -89,7 +89,7 @@ def make_workflow(spec, simple=True):
 
 
 def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
-                      template, workdir, generation):
+                      template, workdir):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -112,8 +112,6 @@ def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
       path to template files
     workdir : str
       path to where to store results
-    generation : int
-      iteration counter for this condition
 
     Returns
     -------
@@ -127,7 +125,6 @@ def make_Simfireworks(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
          firetasks.RunSimulation(fmt=simfmt),
          firetasks.AnalyseSimulation(fmt=simfmt, parallel_id=i)],
         spec={
-            'generation': generation,
             'template': template,
             '_category': wfname,
         },

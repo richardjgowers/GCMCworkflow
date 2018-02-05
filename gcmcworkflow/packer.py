@@ -34,7 +34,7 @@ class CapacityDecider(fw.FiretaskBase):
                 parent_fw=None,
                 T=temperature, P=P, ncycles=None,
                 wfname='Capacity', template=None,
-                workdir=None, generation=i) for P in new_pressures]
+                workdir=None) for P in new_pressures]
 
             pp = make_PostProcess()
 
@@ -42,8 +42,6 @@ class CapacityDecider(fw.FiretaskBase):
             self.__class__(nparallel=nparallel, previous_results=previous),
             parents=new_pps,
         )
-
-
 
     @staticmethod
     def decide_if_flat(results):
@@ -140,7 +138,7 @@ def make_packing_workflow(spec, simple=True):
             parent_fw=init,
             T=T, P=P, ncycles=ncycles, nparallel=nparallel,
             simfmt=simfmt, wfname=wfname,
-            template=template, workdir=workdir, generation=1,
+            template=template, workdir=workdir,
         )
         this_condition_PP = make_PostProcess(
             parent_fw=this_condition,
