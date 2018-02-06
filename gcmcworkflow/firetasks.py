@@ -177,22 +177,21 @@ class CopyTemplate(fw.FiretaskBase):
 @xs
 class CreateRestart(fw.FiretaskBase):
     """Take a single simulation directory and prepare a continuation of it"""
-    required_params = ['previous_simtree']
+    required_params = ['fmt', 'previous_simtree']
 
     @staticmethod
-    def set_as_restart(simtree):
-        raspatools.set_restart(simtree)
+    def set_as_restart(fmt, old, new):
+        if fmt == 'raspa':
+            # copy over Restart directory from previous simulation
+            shutil.copytree(os.path.join(old, 'Restart'),
+                            os.path.join(new, 'RestartInitial'))
+            raspatools.set_restart(simtree)
 
     def run_task(self, fw_spec):
-        # copy over Restart directory from previous simulation
-        oldsim = self['previous_simtree']
-        newsim = fw_spec['simtree']
-
-        shutil.copytree(os.path.join(oldsim, 'Restart'),
-                        os.path.join(newsim, 'RestartInitial'))
-
         # modify the simulation.input to use the restart file
-        self.set_as_restart(fw_spec['simtree'])
+        self.set_as_restart(fmt=self['fmt'],
+                            old=self['previous_simtree'],
+                            new=fw_spec['simtree'])
 
         return fw.FWAction()
 
@@ -286,6 +285,7 @@ class AnalyseSimulation(fw.FiretaskBase):
         simtree = fw_spec['simtree']
 
         # check exit
+        # will raise Error if simulation didn't finish
         finished = self.check_exit(self['fmt'], simtree)
 
         # parse results
