@@ -19,7 +19,7 @@ def test_already_existing(sample_input, launchpad, template_contents):
     # make and run CopyTemplate
     cp = fw.Firework([gcwf.firetasks.CopyTemplate(
         temperature=T, pressure=P,
-        generation=gen, parallel_id=pid,
+        parallel_id=pid,
         fmt='raspa',
         workdir=os.path.abspath('.'),
     )],
@@ -29,7 +29,10 @@ def test_already_existing(sample_input, launchpad, template_contents):
     )
     launchpad(cp)
 
+    newdir2 = gcwf.utils.gen_sim_path(T, P, gen + 1, pid)
+
     assert os.path.exists(newdir)
-    assert not os.path.exists(os.path.join(newdir, 'thing.txt'))
+    assert os.path.exists(newdir2)
+    assert os.path.exists(os.path.join(newdir, 'thing.txt'))
     for fn in template_contents:
-        assert os.path.exists(os.path.join(newdir, fn))
+        assert os.path.exists(os.path.join(newdir2, fn))

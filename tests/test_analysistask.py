@@ -47,12 +47,22 @@ def analysis_task_with_previous(successful_raspa, launchpad):
     yield successful_raspa
 
 
+@pytest.fixture()
+def successful_raspa_results():
+    # tuple of (cycle number, instantaneous mol/kg results)
+    return [
+        (0, 2.9830315349),
+        (673, 2.6380550989),
+        (66627, 2.8815678772),
+        (67300, 2.6989332935),
+    ]
+
 def test_analysis_creates_file(analysis_task):
     assert os.path.exists(os.path.join(analysis_task, 'this_sim_results.csv'))
     assert os.path.exists(os.path.join(analysis_task, 'total_results.csv'))
 
 
-def test_results(analysis_task):
+def test_results(analysis_task, successful_raspa_results):
     fname = os.path.join(analysis_task, 'fw_spec.json')
     with open(fname, 'r') as inf:
         spec = json.load(inf)
@@ -63,13 +73,17 @@ def test_results(analysis_task):
 
     results = results.split()
 
-    assert results[0] == '0,147'
-    assert results[1] == '673,130'
-    assert results[-2] == '66627,142'
-    assert results[-1] == '67300,133'
+    for res, (ref_cycle, ref_loading) in zip(
+            [results[0], results[1], results[-2], results[-1]],
+            successful_raspa_results):
+        cycle, loading = res.split(',')
+        cycle, loading = int(cycle), float(loading)
+
+        assert cycle == ref_cycle
+        assert loading == pytest.approx(ref_loading)
 
 
-def test_previous_results(analysis_task_with_previous):
+def test_previous_results(analysis_task_with_previous, successful_raspa_results):
     fname = os.path.join(analysis_task_with_previous, 'fw_spec.json')
     with open(fname, 'r') as inf:
         spec = json.load(inf)
@@ -78,6 +92,8 @@ def test_previous_results(analysis_task_with_previous):
 
     results = results.split()
 
-    assert results[0] == '0,123'
-    assert results[1] == '673,456'
-    assert results[2] == '1346,147'
+    assert results[0] == '0,123.0'
+    assert results[1] == '673,456.0'
+    cyc, loading = results[2].split(',')
+    assert cyc == '1346'
+    assert float(loading) == pytest.approx(successful_raspa_results[0][1])

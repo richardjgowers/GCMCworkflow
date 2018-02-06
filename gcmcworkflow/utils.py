@@ -68,7 +68,9 @@ def parse_sim_path(path):
     -------
     temperature, pressure, generation, parallel_id
     """
-    return re.search(SIM_PATH_PATTERN, path).groups()
+    match = re.search(SIM_PATH_PATTERN, path).groups()
+
+    return float(match[0]), float(match[1]), int(match[2]), int(match[3])
 
 
 def find_last_generation(workdir, T, P, p_id):
@@ -77,7 +79,10 @@ def find_last_generation(workdir, T, P, p_id):
 
     gens = (parse_sim_path(s)[2] for s in simdirs)
 
-    return max(gens)
+    try:
+        return max(gens)
+    except ValueError:
+        return 0
 
 
 def tail(fn, n):
