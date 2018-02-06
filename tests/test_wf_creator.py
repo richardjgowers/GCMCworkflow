@@ -49,7 +49,6 @@ class TestTemplateCopy(object):
                                         fmt='raspa'),
             spec={
                 'template': os.path.join(sample_input, 'template'),
-                'generation': 1,
             }
         )
         wf = fw.Workflow([cp1])
