@@ -392,9 +392,40 @@ class AnalyseSimulation(fw.FiretaskBase):
 
 @xs
 class PostProcess(fw.FiretaskBase):
-    """Without recycle loop"""
+    """End of sampling stage
+
+    Gathers together timeseries from all parallel runs
+
+    If simple:
+      take off eq period and assume that's enough
+
+    Else:
+      take off eq period
+      estimate g based on eq time (g == eq)
+      if enough g ran:
+        finish
+      else:
+        issue more sampling
+    """
     required_params = ['temperature', 'pressure']
     optional_params = ['simple']
+
+    def prepare_resample(self, previous, ncycles):
+        """Prepare a new sampling stage
+
+        Parameters
+        ----------
+        previous : dict
+          previous simulation results
+        ncycles : int
+          number of steps still required (in total)
+
+        Returns
+        -------
+        detour : fw.Workflow
+          new sampling stages that must be done
+        """
+        return fw.Workflow()
 
     def run_task(self, fw_spec):
         timeseries = {p_id: utils.make_series(ts)
@@ -402,22 +433,24 @@ class PostProcess(fw.FiretaskBase):
 
         simple = self.get('simple', True)
 
-        if simple:
+        g = 0.0
+        means = []
+        stds = []
+
+        for p_id, ts in timeseries.items():
+            eq = analysis.find_eq(ts)
+            production = ts.loc[eq:]
+            # how many eq periods have we sampled for?
+            g += (production.index[-1] - production.index[0]) / eq
+            means.append(production.mean())
+            stds.append(production.std())
+
+        if simple or (g > 20.0):
             finished = True
-
-            means = []
-            stds = []
-
-            for p_id, ts in timeseries.items():
-                eq = analysis.find_eq(ts)
-                means.append(ts.loc[eq:].mean())
-                stds.append(ts.loc[eq:].std())
-
             mean = np.mean(means)
             std = np.mean(stds)
-            g = 1
         else:
-            pass
+            finished = False
 
         if finished:
             return fw.FWAction(
@@ -431,7 +464,10 @@ class PostProcess(fw.FiretaskBase):
             )
         else:
             return fw.FWAction(
-                detours=self.prepare_resample()
+                detours=self.prepare_resample(
+                    previous=timeseries,
+                    ncycles=nreq,
+                )
             )
 
 
