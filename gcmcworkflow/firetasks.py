@@ -182,6 +182,8 @@ class CreateRestart(fw.FiretaskBase):
             shutil.copytree(os.path.join(old, 'Restart'),
                             os.path.join(new, 'RestartInitial'))
             raspatools.set_restart(simtree)
+        else:
+            raise NotImplementedError
 
     def run_task(self, fw_spec):
         # modify the simulation.input to use the restart file
