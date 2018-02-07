@@ -160,7 +160,7 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
         analyses.append(analyse)
 
     postprocess = fw.Firework(
-        pp_cls(temperature=T, pressure=P),
+        [pp_cls(temperature=T, pressure=P)],
         spec={'_category': wfname},
         parents=analyses,
         name='PostProcess T={} P={}'.format(T, P)
