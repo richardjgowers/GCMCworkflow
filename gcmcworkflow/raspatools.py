@@ -148,3 +148,23 @@ def parse_results_simple(tree):
             if line.startswith('Number of molecules:'):
                 wantval = True
     return val
+
+
+def calc_remainder(simdir):
+    """Calculate the number of additional cycles required for this simulation"""
+    results = parse_results(simdir)
+
+    last_index = results.index.max()
+
+    with open(os.path.join(simdir, 'simulation.input'), 'r') as f:
+        for line in f:
+            mat = re.search(r'\s*(?:NumberOfCycles)\s*(\d+)', line)
+
+            if mat is not None:
+                break
+        else:
+            raise ValueError("Couldn't deduce NCycles")
+
+    nreq = int(mat.groups()[0])
+
+    return nreq - last_index

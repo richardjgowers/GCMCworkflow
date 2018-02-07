@@ -11,7 +11,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import numpy as np
 
 from . import firetasks
-from .workflow_creator import make_Simfireworks, make_PostProcess
+#from .workflow_creator import make_Simfireworks, make_PostProcess
 
 
 @xs

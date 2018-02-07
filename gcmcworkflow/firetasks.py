@@ -244,8 +244,9 @@ class AnalyseSimulation(fw.FiretaskBase):
      - checks simulation finished correctly (ie output was written ok)
      - creates results file for this simulation
     """
-    required_params = ['fmt']
-    optional_params = ['parallel_id', 'previous_results']
+    required_params = ['fmt', 'temperature', 'pressure', 'parallel_id',
+                       'workdir']
+    optional_params = ['previous_results']
 
     @staticmethod
     def check_exit(fmt, simpath):
@@ -281,6 +282,79 @@ class AnalyseSimulation(fw.FiretaskBase):
 
         return previous.append(current)
 
+    @staticmethod
+    def calc_remainder(fmt, simdir):
+        """Calculate how many steps were performed and how many remain
+
+        Parameters
+        ----------
+        fmt : str
+          format of simulation
+        simdir : str
+          path to simulation
+
+        Returns
+        -------
+        remaining : int
+          number of steps still left to run
+        """
+        if fmt == 'raspa':
+            raspatools.calc_remainder(simdir)
+        else:
+            raise NotImplementedError("Unrecognised format '{}' to parse"
+                                      "".format(fmt))
+
+    def prepare_restart(self, previous):
+        """Prepare a continuation of the same sampling point
+
+        Parameters
+        ----------
+        previous : str
+          path to previous simulation
+
+        Returns
+        -------
+        new_fws : list of fw
+          contains RunFW and AnalyseFW
+        """
+        # make run FW
+        ncycles_left = self.calc_remainder(self['fmt'], previous)
+
+        T = self['temperature']
+        P = self['pressure']
+        i = self['parallel_id']
+
+        copy_fw = fw.Firework(
+            [CopyTemplate(fmt=self['fmt'],
+                          temperature=T,
+                          pressure=P,
+                          parallel_id=i,
+                          ncycles=ncycles_left,
+                          workdir=self['workdir']),
+             CreateRestart(fmt=self['fmt'],
+                           previous_simtree=previous)],
+            name='Copy T={} P={} v{}'.format(T, P, i),
+        )
+        run_fw = fw.Firework(
+            [RunSimulation(fmt=self['fmt'])],
+            parents=[copy_fw],
+            name=utils.gen_name(T, P, i),
+        )
+
+        # make analyse FW
+        analyse_fw = fw.Firework(
+            [self.__class__(
+                fmt=self['fmt'],
+                temperature=self['temperature'], pressure=self['pressure'],
+                parallel_id=self['parallel_id'], workdir=self['workdir'],
+                previous_results=self.get('previous_results', None))],
+            parents=[copy_fw, run_fw],
+            spec={'_allow_fizzled_parents': True},
+            name='Analyse T={} P={} v{}'.format(T, P, i),
+        )
+
+        return [copy_fw, run_fw, analyse_fw]
+
     def run_task(self, fw_spec):
         simtree = fw_spec['simtree']
 
@@ -293,22 +367,29 @@ class AnalyseSimulation(fw.FiretaskBase):
         # save csv of results from *this* simulation
         utils.save_csv(results, os.path.join(simtree, 'this_sim_results.csv'))
 
-        if 'previous_results' in self:
+        if self.get('previous_results', None) is not None:
             results = self.prepend_previous(self['previous_results'], results)
         # csv of results from all generations of this simulation
         utils.save_csv(results, os.path.join(simtree, 'total_results.csv'))
 
-        parallel_id = self.get('parallel_id', 0)
+        parallel_id = self['parallel_id']
 
-        return fw.FWAction(
-            stored_data={'result': results.to_csv()},
-            mod_spec=[{
-                '_push': {
-                    'results': (parallel_id, results.to_csv()),
-                    'simpaths': (parallel_id, simtree),
-                }
-            }]
-        )
+        if not finished:
+            new_fws = self.prepare_restart(simtree)
+
+            return fw.FWAction(
+                detours=fw.Workflow(new_fws)
+            )
+        else:
+            return fw.FWAction(
+                stored_data={'result': results.to_csv()},
+                mod_spec=[{
+                    '_push': {
+                        'results': (parallel_id, results.to_csv()),
+                        'simpaths': (parallel_id, simtree),
+                    }
+                }]
+            )
 
 
 @xs
