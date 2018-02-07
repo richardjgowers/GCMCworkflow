@@ -400,24 +400,39 @@ class PostProcess(fw.FiretaskBase):
         timeseries = {p_id: utils.make_series(ts)
                       for (p_id, ts) in fw_spec['results']}
 
-        means = []
-        stds = []
-        for p_id, ts in timeseries.items():
-            eq = analysis.find_eq(ts)
-            means.append(ts.loc[eq:].mean())
-            stds.append(ts.loc[eq:].std())
-        mean = np.mean(means)
-        std = np.mean(stds)
+        simple = self.get('simple', True)
 
-        return fw.FWAction(
-            stored_data={'result': (mean, std)},
-            mod_spec=[{
-                # push the results of this condition to the Create task
-                '_push': {'results_array': (self['temperature'],
-                                            self['pressure'],
-                                            mean, std, 1)}
-            }],
-        )
+        if simple:
+            finished = True
+
+            means = []
+            stds = []
+
+            for p_id, ts in timeseries.items():
+                eq = analysis.find_eq(ts)
+                means.append(ts.loc[eq:].mean())
+                stds.append(ts.loc[eq:].std())
+
+            mean = np.mean(means)
+            std = np.mean(stds)
+            g = 1
+        else:
+            pass
+
+        if finished:
+            return fw.FWAction(
+                stored_data={'result': (mean, std)},
+                mod_spec=[{
+                    # push the results of this condition to the Create task
+                    '_push': {'results_array': (self['temperature'],
+                                                self['pressure'],
+                                                mean, std, g)}
+                }],
+            )
+        else:
+            return fw.FWAction(
+                detours=self.prepare_resample()
+            )
 
 
 @xs
