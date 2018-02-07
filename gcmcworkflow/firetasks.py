@@ -392,85 +392,9 @@ class AnalyseSimulation(fw.FiretaskBase):
 
 @xs
 class PostProcess(fw.FiretaskBase):
-    """Gather results for a given condition and make decisions"""
-    required_params = ['temperature', 'pressure']
-
-    def run_task(self, fw_spec):
-        timeseries = {p_id: utils.make_series(ts)
-                      for (p_id, ts) in fw_spec['results']}
-
-        # grab the production portion of each timeseries
-        production = {}
-        for p_id, ts in timeseries.items():
-            eq = analysis.find_eq(ts)
-            production[p_id] = ts.loc[eq:]
-
-        # figure out the number of correlations in the production
-        # period we've sampled
-        # using all timeseries at once we can average between them to smooth
-        g = analysis.find_g(production)
-
-        total_g = 0.0
-        for p_id, ts in production.items():
-            total_g += int((ts.index.max() - ts.index.min()) / g)
-
-        tau_criteria = 20
-        if total_g < tau_criteria:
-            # issue restarts
-            return fw.FWAction(
-            )
-        else:
-            # calculate and declare final answer
-            return fw.FWAction(
-            )
-
-        if finished:
-            # TODO: Maybe write down the final result I've calculated?
-            # This way, the isotherm create step is simpler?
-            # Result = (rho, stderr)
-            # calculate stderr based on autocorrelation just calculated!
-            # need to define somewhere what our criteria for "enough" is
-            uncorr_series = []
-
-            for p_id, ts in production.items():
-                eq = eq_points[p_id]
-                g = g_values[p_id]
-                # grab a few samples
-                # reindex the original sample every *g* steps
-                # starting at *eq*
-                uncorr = ts.reindex(np.arange(n_g[p_id]) * g + eq,
-                                    method='nearest')
-                uncorr_series.append(uncorr)
-
-            final_series = pd.concat(uncorr_series, ignore_index=True)
-            mean = final_series.mean()
-            std = final_series.std()
-            # take mean and std from this
-            return fw.FWAction(
-                stored_data={'result': (mean, std)},
-                mod_spec=[{
-                    # push the results of this condition to the Create task
-                    '_push': {'results_array': (self['temperature'],
-                                                self['pressure'],
-                                                mean, std, total_g)}
-                }],
-            )
-        else:
-            # find last generation number
-            # grab reference to those simulations
-            # add new batch of simulations
-            last_generation = postprocess.find_latest_generation(mysims)
-            new_fws = postprocess.gen_restart_sims(last_generation, T, P)
-
-            # TODO: Look at how children are defined
-            # only need the new PP task to inherit the child of this PP task
-            return fw.FWAction(detours=new_fws)
-
-
-@xs
-class SimplePostProcess(fw.FiretaskBase):
     """Without recycle loop"""
     required_params = ['temperature', 'pressure']
+    optional_params = ['simple']
 
     def run_task(self, fw_spec):
         timeseries = {p_id: utils.make_series(ts)

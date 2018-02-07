@@ -112,11 +112,6 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
     run_sims, analyse_sims : tuple
       List of SimulationFireworks
     """
-    if simple:
-        pp_cls = firetasks.SimplePostProcess
-    else:
-        pp_cls = firetasks.PostProcess
-
     runs = []
     analyses = []
 
@@ -160,7 +155,7 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
         analyses.append(analyse)
 
     postprocess = fw.Firework(
-        [pp_cls(temperature=T, pressure=P)],
+        [firetasks.PostProcess(temperature=T, pressure=P, simple=simple)],
         spec={'_category': wfname},
         parents=analyses,
         name='PostProcess T={} P={}'.format(T, P)
