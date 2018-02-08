@@ -7,6 +7,7 @@ import numpy as np
 import os
 import pandas as pd
 import re
+import random
 
 from . import utils
 
@@ -69,15 +70,24 @@ def update_input(treant, T, P, ncycles):
     simfile = os.path.join(treant, 'simulation.input')
     # make backup of old input for debugging purposes
     os.rename(simfile, simfile + '.bak')
+
+    seeded = False
+    seedline = 'RandomSeed {}\n'.format(random.randint(1, 1e6))
+
     with open(simfile, 'w') as newfile, open(simfile + '.bak', 'r') as oldfile:
         for line in oldfile:
-            if ('ExternalPressure' in line) and (P is not None):
+            if re.match(r'^\s*(?:RandomSeed)', line):
+                seeded = True
+                line = seedline
+            elif ('ExternalPressure' in line) and (P is not None):
                 line = "ExternalPressure {}\n".format(P)
             elif ('ExternalTemperature' in line) and (T is not None):
                 line = "ExternalTemperature {}\n".format(T)
             elif ('NumberOfCycles' in line) and (ncycles is not None):
                 line = "NumberOfCycles {}\n".format(ncycles)
             newfile.write(line)
+        if not seeded:
+            newfile.write(seedline)
 
 
 def set_restart(simtree):
