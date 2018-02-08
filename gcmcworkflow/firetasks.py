@@ -410,13 +410,14 @@ class PostProcess(fw.FiretaskBase):
     required_params = ['temperature', 'pressure']
     optional_params = ['simple']
 
-    def prepare_resample(self, previous, ncycles):
+    def prepare_resample(self, previous_simdirs, previous_results,
+                         T, P, ncycles):
         """Prepare a new sampling stage
 
         Parameters
         ----------
-        previous : dict
-          previous simulation results
+        previous_simdirs, previous_results : dict
+          mapping of parallel id to previous simulation path and results
         ncycles : int
           number of steps still required (in total)
 
@@ -425,6 +426,12 @@ class PostProcess(fw.FiretaskBase):
         detour : fw.Workflow
           new sampling stages that must be done
         """
+        from .workflow_creator import make_sampling_point
+
+        nparallel = len(previous)
+
+        runs, analyses = make_sampling_point(None, T, P, ncycles, nparallel,
+                                             fmt)
         return fw.Workflow()
 
     def run_task(self, fw_spec):
@@ -465,7 +472,11 @@ class PostProcess(fw.FiretaskBase):
         else:
             return fw.FWAction(
                 detours=self.prepare_resample(
-                    previous=timeseries,
+                    previous_simdirs={p_id: path
+                                      for (p_id, path) in fw_spec['simpaths']},
+                    previous_results=timeseries,
+                    T=self['temperature'],
+                    P=self['pressure'],
                     ncycles=nreq,
                 )
             )
