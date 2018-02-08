@@ -60,7 +60,6 @@ from . import NotEquilibratedError
 from . import raspatools
 from . import utils
 from . import analysis
-from . import postprocess
 
 
 @xs
@@ -200,7 +199,7 @@ class RunSimulation(fw.FiretaskBase):
     required_params = ['fmt']
 
     bin_name = {
-        'raspa': '$RASPA_DIR/bin/simulate',
+        'raspa': 'simulate simulation.input',
     }
 
     def run_task(self, fw_spec):
