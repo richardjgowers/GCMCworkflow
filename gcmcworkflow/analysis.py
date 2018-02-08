@@ -4,6 +4,7 @@
 """
 import numpy as np
 import pandas as pd
+from sklearn import isotonic
 from scipy.optimize import curve_fit
 from statsmodels.tsa import stattools
 
@@ -46,30 +47,16 @@ def check_flat(sig, max_drift=5):
 
     # if x0 is very small, dont calculate drift and assume flat
     # fixes issue with very long time series
-    if (x0 > 1e-4) and (totdrift > max_drift):
-        raise NotEquilibratedError(
-            "Signal drifted {}%."
-            "x0: {} c: {}"
-            "y0: {} y1: {}"
-            "mean: {}".format(
-                totdrift,
-                x0, c,
-                y0, y1,
-                sig.mean))
-    else:
-        return True
+    return (x0 > 1e-4) and (totdrift > max_drift)
 
 
-def find_eq(signal, wsize=None):
+def find_eq(signal):
     """Given a timeseries, figure out where it became equilibrated
 
     Parameters
     ----------
     signal : pd.Series
       total combined raw signal from a given parallel_id
-    wsize : int, optional
-      number of MC steps to consider as window for rolling mean
-      by default considers 1% of the signal
 
     Returns
     -------
@@ -79,28 +66,22 @@ def find_eq(signal, wsize=None):
     Raises
     ------
     NotEquilibratedError
-      if the back of the signal has over 5% drift
+      if the back half of the signal has over 5% drift
     """
-    if wsize is None:
-        # default, consider 1% of signal
-        wsize = len(signal) // 100
-    else:
-        wsize = len(signal.loc[:wsize])
-
-    half = len(signal) // 2
-    back = signal.iloc[half:]
+    back = signal.tail(len(signal) // 2)
 
     # raises NotEquilibratedError if not flat
-    #check_flat(back)
+    if not check_flat(back):
+        raise NotEquilibratedError
 
-    mean = back.mean()
-    std = back.std()
-    thresh = mean - 2 * std
+    # assume back part mean is ceiling of signal
+    ir = isotonic.IsotonicRegression(y_max=back.mean())
+    ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
+                       index=signal.index)
+    # find first point that we hit the max value
+    eq = ir_fit[ir_fit == ir_fit.iloc[-1]].index[0]
 
-    rm = signal.rolling(wsize, center=True).mean()
-    equil, sampling = split_around(rm, thresh)
-
-    return sampling.index[0]
+    return eq
 
 
 def grab_until(sig, thresh):
@@ -114,7 +95,7 @@ def grab_until(sig, thresh):
 def grab_after(sig, thresh):
     """Works on falling signals"""
     cut = sig[sig < thresh].index[0]
-    
+
     return sig.loc[cut:]
 
 
@@ -142,7 +123,7 @@ def do_exp_fit(sig, thresh=0.1):
     """
     sig = grab_until(sig, thresh)
     # grab sig up to where it first goes below threshhold
-    
+
     x, y = sig.index, sig.values
     return curve_fit(exp_fit, x, y, p0=10000)[0][0]
 
@@ -170,7 +151,7 @@ def find_g(signal, tmax=5000000, thresh=0.1):
     # find how many rows of sig we will use
     # the signal won't start at t=0, therefore find the offset and adjust
     t0 = signal.index[0]
-    nlags = len(signal.loc[:t0 + tmax])  # this then finds 
+    nlags = len(signal.loc[:t0 + tmax])  # this then finds
     acf = stattools.acf(signal, fft=True, nlags=nlags)
     # (nlags + 1) as acf at zero is returned
     acf = pd.Series(acf, signal.index[:nlags + 1] - t0)
