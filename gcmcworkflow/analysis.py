@@ -74,12 +74,11 @@ def find_eq(signal):
     if not check_flat(back):
         raise NotEquilibratedError
 
-    # assume back part mean is ceiling of signal
-    ir = isotonic.IsotonicRegression(y_max=back.mean())
+    ir = isotonic.IsotonicRegression()
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
                        index=signal.index)
-    # find first point that we hit the max value
-    eq = ir_fit[ir_fit == ir_fit.iloc[-1]].index[0]
+    # find first point that we hit one "wiggle" below the max value
+    eq = ir_fit[ir_fit >= (ir_fit.iloc[-1] - back.std())].index[0]
 
     return eq
 
