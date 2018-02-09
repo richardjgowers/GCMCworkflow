@@ -10,7 +10,7 @@ with open(os.path.join(here, 'gcmcworkflow', '__init__.py'), 'r') as f:
     version = re.search("'(\d+\.\d+\.\d+)'", f.read()).groups()[0]
 
 setup(
-    name='GCMCworkflow',
+    name='gcmcworkflow',
     version=version,
     long_description=long_description,
 
