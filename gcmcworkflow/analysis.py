@@ -71,8 +71,8 @@ def find_eq(signal):
     back = signal.tail(len(signal) // 2)
 
     # raises NotEquilibratedError if not flat
-    if not check_flat(back):
-        raise NotEquilibratedError
+    #if not check_flat(back):
+    #    raise NotEquilibratedError
 
     ir = isotonic.IsotonicRegression()
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
