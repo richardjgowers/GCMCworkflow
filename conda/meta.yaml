@@ -25,6 +25,8 @@ requirements:
     - terminaltables
     - termcolor
     - mmtf-python
+    - scikit-learn
+    - MDAnalysis >=0.17.0
 
 test:
   imports:
