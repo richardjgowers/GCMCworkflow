@@ -1,3 +1,4 @@
+from collections import namedtuple
 import dill
 import glob
 import io
@@ -38,13 +39,19 @@ def gen_name(T, P, idx):
     name += " v{}".format(idx)
     return name
 
+
+# little namespace for holding parsed simpaths
+SimPath = namedtuple('SimPath', 'simhash,T,P,gen_id,parallel_id')
+
 SIM_PATH_PATTERN = re.compile(
-    r'sim_T(\d+\.\d+)_P(\d+\.\d+)_gen(\d+)_v(\d+)')
-def gen_sim_path(T, P, gen_id, p_id):
+    r'sim(.{7})?_T(\d+\.\d+)_P(\d+\.\d+)_gen(\d+)_v(\d+)')
+def gen_sim_path(simhash, T, P, gen_id, p_id):
     """Generate a path name for a simulation
 
     Parameters
     ----------
+    simhash : str
+      7 digit hash of the simulation (or '')
     T, P : float
       temperature and pressure
     gen_id : int
@@ -56,8 +63,8 @@ def gen_sim_path(T, P, gen_id, p_id):
     -------
     path : str
     """
-    return 'sim_T{t}_P{p}_gen{g}_v{i}'.format(
-        t=T, p=P, g=gen_id, i=p_id
+    return 'sim{hash}_T{t}_P{p}_gen{g}_v{i}'.format(
+        hash=simhash, t=T, p=P, g=gen_id, i=p_id
     )
 
 
@@ -66,18 +73,22 @@ def parse_sim_path(path):
 
     Returns
     -------
-    temperature, pressure, generation, parallel_id
+    simhash, temperature, pressure, generation, parallel_id
     """
     match = re.search(SIM_PATH_PATTERN, path).groups()
 
-    return float(match[0]), float(match[1]), int(match[2]), int(match[3])
+    simhash, T, P, gen, par = match.groups()
+    if simhash is None:
+        simhash = ''
+
+    return SimPath(simhash, float(T), float(P), int(gen), int(par))
 
 
-def find_last_generation(workdir, T, P, p_id):
+def find_last_generation(workdir, simhash, T, P, p_id):
     """Find the index of the last generation run"""
-    simdirs = glob.glob(os.path.join(workdir, gen_sim_path(T, P, '*', p_id)))
+    simdirs = glob.glob(os.path.join(workdir, gen_sim_path(simhash, T, P, '*', p_id)))
 
-    gens = (parse_sim_path(s)[2] for s in simdirs)
+    gens = (parse_sim_path(s).gen_id for s in simdirs)
 
     try:
         return max(gens)

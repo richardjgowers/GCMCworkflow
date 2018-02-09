@@ -48,11 +48,13 @@ SimFirework layout::
 """
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
+import hashlib
 import numpy as np
 import pandas as pd
 import os
 import shutil
 import subprocess
+import tarfile
 
 # Import format specific tools
 from . import NotEquilibratedError
@@ -79,20 +81,69 @@ class InitTemplate(fw.FiretaskBase):
        - tags this Treant as the template
      - adds path of template Treant to future Firework specs
     """
-    required_params = ['contents']
-    optional_params = ['workdir']
+    optional_params = ['contents', 'workdir']
 
     def run_task(self, fw_spec):
-        # where the template can be found
-        target = utils.dump_directory(
-            os.path.join(self.get('workdir', ''), 'template'), self['contents'])
+        if self.get('contents', None) is not None:
+            # where the template can be found
+            target = utils.dump_directory(
+                os.path.join(self.get('workdir', ''), 'template'), self['contents'])
 
-        return fw.FWAction(
-            update_spec={
-                # pass reference to this Treant to future Fireworks
-                'template': target,
-            }
-        )
+            return fw.FWAction(
+                update_spec={
+                    # pass reference to this Treant to future Fireworks
+                    'template': target,
+                }
+            )
+        else:
+            return fw.FWAction()
+
+
+@xs
+class CreatePassport(fw.FiretaskBase):
+    """Create a passport/fingerprint of a simulation setup"""
+    optional_params = ['workdir']
+
+    @staticmethod
+    def calc_hash(tarname):
+        """Returns leading 7 digits of SHA1 hash of tarfile"""
+        hash = hashlib.sha1()
+
+        with tarfile.open(tarname, 'r') as tar:
+            for tarinfo in tar:
+                if not tarinfo.isreg():
+                    continue
+                flo = tar.extractfile(tarinfo)
+                while True:
+                    # potentially can't hash the entire data
+                    # so read it bit by bit
+                    data = flo.read(2**20)
+                    if not data:
+                        break
+                    hash.update(data)
+                flo.close()
+
+        return hash.hexdigest()[:7]
+
+    @staticmethod
+    def write_tarball(target, workdir):
+        # create with initial name
+        tarname = os.path.join(workdir, os.path.basename(target) + '.tar.gz')
+        with tarfile.open(tarname, 'w:gz') as tar:
+            tar.add(target, arcname=os.path.basename(target))
+
+        return tarname
+
+    def run_task(self, fw_spec):
+        tarpath = self.write_tarball(fw_spec['template'].rstrip(os.path.sep),
+                                     self.get('workdir', ''))
+
+        # then rename tar according to hash of file
+        sha1 = self.calc_hash(tarpath)
+        os.rename(tarpath,
+                  os.path.join(self.get('workdir', ''), '{}.tar.gz'.format(sha1)))
+
+        return fw.FWAction(update_spec={'simhash': sha1})
 
 
 @xs
@@ -123,13 +174,15 @@ class CopyTemplate(fw.FiretaskBase):
             raise NotImplementedError
 
     @staticmethod
-    def copy_template(workdir, template, T, P, p_id):
+    def copy_template(workdir, simhash, template, T, P, p_id):
         """Copy template and prepare simulation run
 
         Parameters
         ----------
         workdir : str
           path to place template
+        simhash : str
+          7 digit hash of the simulation (or '')
         template : str
           template to copy
         T, P : float
@@ -137,9 +190,10 @@ class CopyTemplate(fw.FiretaskBase):
         p_id : int
           parallel id of this simulation
         """
-        gen_id = utils.find_last_generation(workdir, T, P, p_id) + 1
+        gen_id = utils.find_last_generation(workdir, simhash, T, P, p_id) + 1
         # where to place this simulation
-        newdir = os.path.join(workdir, utils.gen_sim_path(T, P, gen_id, p_id))
+        newdir = os.path.join(workdir,
+                              utils.gen_sim_path(simhash, T, P, gen_id, p_id))
 
         # copy in the template to this newdir
         shutil.copytree(template, newdir)
@@ -149,6 +203,7 @@ class CopyTemplate(fw.FiretaskBase):
     def run_task(self, fw_spec):
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
+            simhash=fw_spec.get('simhash', ''),
             template=fw_spec['template'],
             P=self['pressure'],
             T=self['temperature'],

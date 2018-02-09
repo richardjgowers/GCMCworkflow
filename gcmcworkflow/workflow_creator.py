@@ -30,30 +30,28 @@ def make_workflow(spec, simple=True):
     wfname = spec['name']
 
     if not isinstance(template, dict):
-        dict_template = False
         # Passed path to template
         # if passed path to template, slurp it up
 
         # old method of slurping up directory
-        stuff = utils.slurp_directory(template)
+        stuff = None
+        slurped = utils.slurp_directory(template)
+        simfmt = utils.guess_format(slurped)
     else:
-        dict_template = True
         # Else passed dict of stuff
         stuff = template
+        simfmt = utils.guess_format(stuff)
+        stuff = utils.escape_template(stuff)
 
-    simfmt = utils.guess_format(stuff)
-    stuff = utils.escape_template(stuff)
-
-    if dict_template:
-        init = fw.Firework(
-            firetasks.InitTemplate(contents=stuff, workdir=workdir),
-            spec={'_category': wfname},
-            name='Template Init'
-        )
-        setup = [init]
-    else:
-        init = None
-        setup = []
+    init = fw.Firework(
+        [firetasks.InitTemplate(contents=stuff, workdir=workdir),
+         firetasks.CreatePassport(workdir=workdir)],
+        spec={
+            '_category': wfname,
+            'template': template,
+        },
+        name='Template Init',
+    )
 
     simulations = []  # list of simulation fireworks
     post_processing = []  # list of post processing fireworks
@@ -63,18 +61,20 @@ def make_workflow(spec, simple=True):
             T=T, P=P, ncycles=ncycles, nparallel=nparallel,
             simfmt=simfmt, wfname=wfname,
             template=template, workdir=workdir,
-            simple=simple
+            simple=simple,
         )
         simulations.extend(this_condition)
         post_processing.append(this_condition_PP)
 
-    iso_create = fw.Firework(firetasks.IsothermCreate(workdir=workdir),
-                             parents=post_processing,
-                             spec={'_category': wfname},
-                             name='Isotherm create')
+    iso_create = fw.Firework(
+        [firetasks.IsothermCreate(workdir=workdir)],
+        parents=post_processing,
+        spec={'_category': wfname},
+        name='Isotherm create',
+    )
 
     wf = fw.Workflow(
-        setup + simulations + post_processing + [iso_create],
+        [init] + simulations + post_processing + [iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
