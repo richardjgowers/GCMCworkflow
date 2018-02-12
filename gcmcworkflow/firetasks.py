@@ -164,7 +164,7 @@ class CopyTemplate(fw.FiretaskBase):
     Provides: simtree - path to the customised version of the template
     """
     required_params = ['temperature', 'pressure', 'fmt']
-    optional_params = ['workdir', 'parallel_id', 'ncycles']
+    optional_params = ['previous_simdir', 'workdir', 'parallel_id', 'ncycles']
 
     @staticmethod
     def update_input(target, fmt, T, P, n):
@@ -200,6 +200,17 @@ class CopyTemplate(fw.FiretaskBase):
 
         return newdir
 
+    @staticmethod
+    def set_as_restart(fmt, old, new):
+        if fmt == 'raspa':
+            # copy over Restart directory from previous simulation
+            shutil.copytree(os.path.join(old, 'Restart'),
+                            os.path.join(new, 'RestartInitial'))
+            raspatools.set_restart(simtree)
+        else:
+            raise NotImplementedError
+
+
     def run_task(self, fw_spec):
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
@@ -219,33 +230,16 @@ class CopyTemplate(fw.FiretaskBase):
             n=self.get('ncycles', None),
         )
 
+        if self.get('previous_simdir', None) is not None:
+            self.set_as_restart(
+                self['fmt'],
+                old=self['previous_simdir'],
+                new=sim_t,
+            )
+
         return fw.FWAction(
             update_spec={'simtree': os.path.abspath(sim_t)}
         )
-
-
-@xs
-class CreateRestart(fw.FiretaskBase):
-    """Take a single simulation directory and prepare a continuation of it"""
-    required_params = ['fmt', 'previous_simtree']
-
-    @staticmethod
-    def set_as_restart(fmt, old, new):
-        if fmt == 'raspa':
-            # copy over Restart directory from previous simulation
-            shutil.copytree(os.path.join(old, 'Restart'),
-                            os.path.join(new, 'RestartInitial'))
-            raspatools.set_restart(simtree)
-        else:
-            raise NotImplementedError
-
-    def run_task(self, fw_spec):
-        # modify the simulation.input to use the restart file
-        self.set_as_restart(fmt=self['fmt'],
-                            old=self['previous_simtree'],
-                            new=fw_spec['simtree'])
-
-        return fw.FWAction()
 
 
 @xs
@@ -382,9 +376,8 @@ class AnalyseSimulation(fw.FiretaskBase):
                           pressure=P,
                           parallel_id=i,
                           ncycles=ncycles_left,
-                          workdir=self['workdir']),
-             CreateRestart(fmt=self['fmt'],
-                           previous_simtree=previous)],
+                          workdir=self['workdir'],
+                          previous_simtree=previous)],
             name='Copy T={} P={} v{}'.format(T, P, i),
         )
         run_fw = fw.Firework(
