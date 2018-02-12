@@ -29,7 +29,7 @@ SimFirework layout::
          v                   v                   v                    |
     CopyTemplate        CopyTemplate        CopyTemplate              |
          |                   |                   |                    |
-   (CopyRestart?)      (CopyRestart?)      (CopyRestart?)             |
+         |                   |                   |                    |
          |                   |                   |                    |
          v                   v                   v                    |
     RunSimulation       RunSimulation       RunSimulation             |
@@ -454,17 +454,18 @@ class PostProcess(fw.FiretaskBase):
       else:
         issue more sampling
     """
-    required_params = ['temperature', 'pressure']
+    required_params = ['temperature', 'pressure', 'workdir']
     optional_params = ['simple']
 
-    def prepare_resample(self, previous_simdirs, previous_results,
-                         T, P, ncycles):
+    def prepare_resample(self, previous_simdirs, previous_results, ncycles):
         """Prepare a new sampling stage
 
         Parameters
         ----------
         previous_simdirs, previous_results : dict
           mapping of parallel id to previous simulation path and results
+        T, P : float
+          temperature and pressure
         ncycles : int
           number of steps still required (in total)
 
@@ -476,8 +477,13 @@ class PostProcess(fw.FiretaskBase):
         from .workflow_creator import make_sampling_point
 
         nparallel = len(previous)
+        # adjust ncycles based on how many parallel runs we have
 
-        runs, analyses = make_sampling_point(None, T, P, ncycles, nparallel,
+        runs, analyses = make_sampling_point(
+            parent_fw=None,
+            T=self['temperature'],
+            P=self['pressure'], ncycles=ncycles, nparallel=nparallel,
+            simfmt='raspa', wfname=self['wfname'],
                                              fmt)
         return fw.Workflow()
 
@@ -491,15 +497,22 @@ class PostProcess(fw.FiretaskBase):
         means = []
         stds = []
 
+        # starts True, turns false once a single sim wasn't equilibrated
+        equilibrated = True
+
         for p_id, ts in timeseries.items():
-            eq = analysis.find_eq(ts)
+            try:
+                eq = analysis.find_eq(ts)
+            except NotEquilibratedError:
+                equilibrated &= False
+
             production = ts.loc[eq:]
             # how many eq periods have we sampled for?
             g += (production.index[-1] - production.index[0]) / eq
             means.append(production.mean())
             stds.append(production.std())
 
-        if simple or (g > 20.0):
+        if equilibrated and (simple or (g > 20.0)):
             finished = True
             mean = np.mean(means)
             std = np.mean(stds)
@@ -517,13 +530,19 @@ class PostProcess(fw.FiretaskBase):
                 }],
             )
         else:
+            # TODO: Calc N remaining here
+            # or estimate how many are required
+            if not equilibrated:
+                nreq = 'something'
+            else:
+                # make educated guess
+                nreq = 'something else'
+
             return fw.FWAction(
                 detours=self.prepare_resample(
                     previous_simdirs={p_id: path
                                       for (p_id, path) in fw_spec['simpaths']},
                     previous_results=timeseries,
-                    T=self['temperature'],
-                    P=self['pressure'],
                     ncycles=nreq,
                 )
             )
