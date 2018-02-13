@@ -382,7 +382,7 @@ class AnalyseSimulation(fw.FiretaskBase):
             parallel_id=i,
             simfmt=self['fmt'],
             wfname=wfname,
-            template=template
+            template=template,
             workdir=self['workdir'],
             previous_simdir=previous_simdir,
             previous_result=current_result,
@@ -409,7 +409,7 @@ class AnalyseSimulation(fw.FiretaskBase):
 
         if not finished:
             new_fws = self.prepare_restart(
-                template=fw_spec['template']
+                template=fw_spec['template'],
                 previous_simdir=simtree,
                 current_result=results,
                 wfname=fw_spec['_category'],
