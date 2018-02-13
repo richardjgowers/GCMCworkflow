@@ -25,7 +25,7 @@ pip install -r requirements.txt
 pip install dnspython
 
 # for Raspa simulations
-# pip install raspa2
+pip install raspa2
 
 ```
 
