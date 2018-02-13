@@ -82,8 +82,8 @@ def make_workflow(spec, simple=True):
     return wf
 
 
-def make_runstage(parent_fw, T, P, ncycles, parallel_id,
-                  simfmt, wfname, template, workdir,
+def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
+                  fmt, wfname, template, workdir,
                   previous_simdir=None, previous_result=None):
     """Make a single Run stage
 
@@ -91,13 +91,13 @@ def make_runstage(parent_fw, T, P, ncycles, parallel_id,
     ----------
     parent_fw : fw.Firework or None
       reference to preceeding item in workflow
-    T, P : float
+    temperature, pressure : float
       conditions to sample
     ncycles : int
       number of steps to simulate at this point
     parallel_id : int
       index of the run
-    simfmt : str
+    fmt : str
       which format simulation
     wfname : str
       unique workflow name
@@ -114,7 +114,8 @@ def make_runstage(parent_fw, T, P, ncycles, parallel_id,
 
     copy = fw.Firework(
         [firetasks.CopyTemplate(
-            fmt=simfmt, temperature=T, pressure=P, ncycles=ncycles,
+            fmt=fmt, temperature=temperature, pressure=pressure,
+            ncycles=ncycles,
             parallel_id=parallel_id,
             workdir=workdir,
             previous_simdir=previous_simdir
@@ -124,20 +125,20 @@ def make_runstage(parent_fw, T, P, ncycles, parallel_id,
             'template': template,
             '_category': wfname,
         },
-        name='Copy T={} P={} v{}'.format(T, P, i),
+        name='Copy T={} P={} v{}'.format(temperature, pressure, parallel_id),
     )
     run = fw.Firework(
-        [firetasks.RunSimulation(fmt=simfmt)],
+        [firetasks.RunSimulation(fmt=fmt)],
         parents=[copy],
         spec={
             '_category': wfname,
         },
-        name=utils.gen_name(T, P, i),
+        name=utils.gen_name(temperature, pressure, parallel_id),
     )
     analyse = fw.Firework(
         [firetasks.AnalyseSimulation(
-            fmt=simfmt, temperature=T, pressure=P,
-            parallel_id=i,
+            fmt=fmt, temperature=temperature, pressure=pressure,
+            parallel_id=parallel_id,
             workdir=workdir,
             # if this is a restart, pass previous results, else None
             previous_results=previous_result,
@@ -147,7 +148,7 @@ def make_runstage(parent_fw, T, P, ncycles, parallel_id,
             '_category': wfname,
         },
         parents=[copy, run],
-        name='Analyse T={} P={} v{}'.format(T, P, i)
+        name='Analyse T={} P={} v{}'.format(temperature, pressure, parallel_id)
     )
 
     return copy, run, analyse
@@ -194,8 +195,9 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
 
     for i in range(nparallel):
         copy, run, analyse = make_runstage(
-            parent_fw=parent_fw, T=T, P=P, ncycles=ncycles, parallel_id=i,
-            simfmt=simfmt, wfname=wfname, template=template, workdir=workdir,
+            parent_fw=parent_fw, temperature=T, pressure=P, ncycles=ncycles,
+            parallel_id=i, fmt=simfmt, wfname=wfname,
+            template=template, workdir=workdir,
             previous_simdir=previous_simdirs.get(i, None),
             previous_result=previous_results.get(i, None),
         )

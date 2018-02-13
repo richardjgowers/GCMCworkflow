@@ -376,11 +376,11 @@ class AnalyseSimulation(fw.FiretaskBase):
 
         copy_fw, run_fw, analyse_fw = make_runstage(
             parent_fw=None,
-            T=self['temperature'],
-            P=self['pressure'],
+            temperature=self['temperature'],
+            pressure=self['pressure'],
             ncycles=ncycles_left,
             parallel_id=i,
-            simfmt=self['fmt'],
+            fmt=self['fmt'],
             wfname=wfname,
             template=template,
             workdir=self['workdir'],
