@@ -210,7 +210,6 @@ class CopyTemplate(fw.FiretaskBase):
         else:
             raise NotImplementedError
 
-
     def run_task(self, fw_spec):
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
@@ -292,7 +291,7 @@ class AnalyseSimulation(fw.FiretaskBase):
     """
     required_params = ['fmt', 'temperature', 'pressure', 'parallel_id',
                        'workdir']
-    optional_params = ['previous_results']
+    optional_params = ['previous_result']
 
     @staticmethod
     def check_exit(fmt, simpath):
@@ -350,18 +349,21 @@ class AnalyseSimulation(fw.FiretaskBase):
             raise NotImplementedError("Unrecognised format '{}' to parse"
                                       "".format(fmt))
 
-    def prepare_restart(self, previous):
+    def prepare_restart(self, template, previous_simdir, current_result,
+                        wfname):
         """Prepare a continuation of the same sampling point
 
         Parameters
         ----------
+        template : str
+          path to template to use
         previous : str
           path to previous simulation
 
         Returns
         -------
         new_fws : list of fw
-          contains RunFW and AnalyseFW
+          contains Copy, Run and Analyse Fireworks
         """
         # make run FW
         ncycles_left = self.calc_remainder(self['fmt'], previous)
@@ -370,32 +372,20 @@ class AnalyseSimulation(fw.FiretaskBase):
         P = self['pressure']
         i = self['parallel_id']
 
-        copy_fw = fw.Firework(
-            [CopyTemplate(fmt=self['fmt'],
-                          temperature=T,
-                          pressure=P,
-                          parallel_id=i,
-                          ncycles=ncycles_left,
-                          workdir=self['workdir'],
-                          previous_simtree=previous)],
-            name='Copy T={} P={} v{}'.format(T, P, i),
-        )
-        run_fw = fw.Firework(
-            [RunSimulation(fmt=self['fmt'])],
-            parents=[copy_fw],
-            name=utils.gen_name(T, P, i),
-        )
+        from .workflow_creator import make_runstage
 
-        # make analyse FW
-        analyse_fw = fw.Firework(
-            [self.__class__(
-                fmt=self['fmt'],
-                temperature=self['temperature'], pressure=self['pressure'],
-                parallel_id=self['parallel_id'], workdir=self['workdir'],
-                previous_results=self.get('previous_results', None))],
-            parents=[copy_fw, run_fw],
-            spec={'_allow_fizzled_parents': True},
-            name='Analyse T={} P={} v{}'.format(T, P, i),
+        copy_fw, run_fw, analyse_fw = make_runstage(
+            parent_fw=None,
+            T=self['temperature'],
+            P=self['pressure'],
+            ncycles=ncycles_left,
+            parallel_id=i,
+            simfmt=self['fmt'],
+            wfname=wfname,
+            template=template
+            workdir=self['workdir'],
+            previous_simdir=previous_simdir,
+            previous_result=current_result,
         )
 
         return [copy_fw, run_fw, analyse_fw]
@@ -412,20 +402,25 @@ class AnalyseSimulation(fw.FiretaskBase):
         # save csv of results from *this* simulation
         utils.save_csv(results, os.path.join(simtree, 'this_sim_results.csv'))
 
-        if self.get('previous_results', None) is not None:
-            results = self.prepend_previous(self['previous_results'], results)
+        if self.get('previous_result', None) is not None:
+            results = self.prepend_previous(self['previous_result'], results)
         # csv of results from all generations of this simulation
         utils.save_csv(results, os.path.join(simtree, 'total_results.csv'))
 
-        parallel_id = self['parallel_id']
-
         if not finished:
-            new_fws = self.prepare_restart(simtree)
+            new_fws = self.prepare_restart(
+                template=fw_spec['template']
+                previous_simdir=simtree,
+                current_result=results,
+                wfname=fw_spec['_category'],
+            )
 
             return fw.FWAction(
                 detours=fw.Workflow(new_fws)
             )
         else:
+            parallel_id = self['parallel_id']
+
             return fw.FWAction(
                 stored_data={'result': results.to_csv()},
                 mod_spec=[{
@@ -457,17 +452,20 @@ class PostProcess(fw.FiretaskBase):
     required_params = ['temperature', 'pressure', 'workdir']
     optional_params = ['simple']
 
-    def prepare_resample(self, previous_simdirs, previous_results, ncycles):
+    def prepare_resample(self, previous_simdirs, previous_results, ncycles,
+                         wfname, template):
         """Prepare a new sampling stage
 
         Parameters
         ----------
         previous_simdirs, previous_results : dict
           mapping of parallel id to previous simulation path and results
-        T, P : float
-          temperature and pressure
         ncycles : int
-          number of steps still required (in total)
+          number of steps still required (in total across parallel jobs)
+        wfname : str
+          unique name for this Workflow
+        template : str
+          path to sim template
 
         Returns
         -------
@@ -478,14 +476,24 @@ class PostProcess(fw.FiretaskBase):
 
         nparallel = len(previous)
         # adjust ncycles based on how many parallel runs we have
+        ncycles = ncycles // nparallel
 
-        runs, analyses = make_sampling_point(
+        runs, pps = make_sampling_point(
             parent_fw=None,
             T=self['temperature'],
-            P=self['pressure'], ncycles=ncycles, nparallel=nparallel,
-            simfmt='raspa', wfname=self['wfname'],
-                                             fmt)
-        return fw.Workflow()
+            P=self['pressure'],
+            ncycles=ncycles,
+            nparallel=nparallel,
+            simfmt=self['fmt'],
+            wfname=wfname,
+            template=template,
+            workdir=self['workdir'],
+            simple=self['simple'],
+            previous_results=previous_results,
+            previous_simdirs=previous_simdirs,
+        )
+
+        return fw.Workflow(runs + pps)
 
     def run_task(self, fw_spec):
         timeseries = {p_id: utils.make_series(ts)
@@ -544,6 +552,8 @@ class PostProcess(fw.FiretaskBase):
                                       for (p_id, path) in fw_spec['simpaths']},
                     previous_results=timeseries,
                     ncycles=nreq,
+                    wfname=fw_spec['_category'],
+                    template=fw_spec['template'],
                 )
             )
 

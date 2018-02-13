@@ -8,5 +8,7 @@ scipy
 statsmodels
 hydraspa>=0.0.5
 terminaltables
-colorclass
-mmtf-python==1.0.7
+termcolor
+mmtf-python
+scikit-learn
+MDAnalysis >= 0.17.0

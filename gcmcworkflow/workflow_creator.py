@@ -82,8 +82,80 @@ def make_workflow(spec, simple=True):
     return wf
 
 
-def make_sampling_point(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
-                        template, workdir, simple):
+def make_runstage(parent_fw, T, P, ncycles, parallel_id,
+                  simfmt, wfname, template, workdir,
+                  previous_simdir=None, previous_result=None):
+    """Make a single Run stage
+
+    Parameters
+    ----------
+    parent_fw : fw.Firework or None
+      reference to preceeding item in workflow
+    T, P : float
+      conditions to sample
+    ncycles : int
+      number of steps to simulate at this point
+    parallel_id : int
+      index of the run
+    simfmt : str
+      which format simulation
+    wfname : str
+      unique workflow name
+    template : str
+      location of the template files
+    workdir : str
+      where to place the simulation
+    previous_simdir : str, optional
+      if a restart, where the simulation
+    """
+    if ((previous_simdir is None and not previous_result is None) or
+        (not previous_simdir is None and previous_result is None)):
+        raise ValueError("Must supply *both* previous simdir and result")
+
+    copy = fw.Firework(
+        [firetasks.CopyTemplate(
+            fmt=simfmt, temperature=T, pressure=P, ncycles=ncycles,
+            parallel_id=parallel_id,
+            workdir=workdir,
+            previous_simdir=previous_simdir
+        )],
+        parents=parent_fw,
+        spec={
+            'template': template,
+            '_category': wfname,
+        },
+        name='Copy T={} P={} v{}'.format(T, P, i),
+    )
+    run = fw.Firework(
+        [firetasks.RunSimulation(fmt=simfmt)],
+        parents=[copy],
+        spec={
+            '_category': wfname,
+        },
+        name=utils.gen_name(T, P, i),
+    )
+    analyse = fw.Firework(
+        [firetasks.AnalyseSimulation(
+            fmt=simfmt, temperature=T, pressure=P,
+            parallel_id=i,
+            workdir=workdir,
+            # if this is a restart, pass previous results, else None
+            previous_results=previous_result,
+        )],
+        spec={
+            '_allow_fizzled_parents': True,
+            '_category': wfname,
+        },
+        parents=[copy, run],
+        name='Analyse T={} P={} v{}'.format(T, P, i)
+    )
+
+    return copy, run, analyse
+
+
+def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
+                        simfmt, wfname, template, workdir, simple,
+                        previous_results=None, previous_simdirs=None):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -112,50 +184,28 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel, simfmt, wfname,
     run_sims, analyse_sims : tuple
       List of SimulationFireworks
     """
+    if previous_results is None:
+        previous_results = dict()
+    if previous_simdirs is None:
+        previous_simdirs = dict()
+
     runs = []
     analyses = []
 
     for i in range(nparallel):
-        copy = fw.Firework(
-            [firetasks.CopyTemplate(fmt=simfmt, temperature=T, pressure=P,
-                                    parallel_id=i, ncycles=ncycles,
-                                    workdir=workdir)],
-            parents=parent_fw,
-            spec={
-                'template': template,
-                '_category': wfname,
-            },
-            name='Copy T={} P={} v{}'.format(T, P, i),
+        copy, run, analyse = make_runstage(
+            parent_fw=parent_fw, T=T, P=P, ncycles=ncycles, parallel_id=i,
+            simfmt=simfmt, wfname=wfname, template=template, workdir=workdir,
+            previous_simdir=previous_simdirs.get(i, None),
+            previous_result=previous_results.get(i, None),
         )
-
-        run = fw.Firework(
-            [firetasks.RunSimulation(fmt=simfmt)],
-            parents=copy,
-            spec={
-                '_category': wfname,
-            },
-            name=utils.gen_name(T, P, i),
-        )
-
-        analyse = fw.Firework(
-            [firetasks.AnalyseSimulation(
-                fmt=simfmt, temperature=T, pressure=P,
-                parallel_id=i,
-                workdir=workdir)],
-            spec={
-                '_allow_fizzled_parents': True,
-                '_category': wfname,
-            },
-            parents=[copy, run],
-            name='Analyse T={} P={} v{}'.format(T, P, i)
-        )
-
         runs.append(copy)
         runs.append(run)
         analyses.append(analyse)
 
     postprocess = fw.Firework(
-        [firetasks.PostProcess(temperature=T, pressure=P, simple=simple)],
+        [firetasks.PostProcess(temperature=T, pressure=P, workdir=workdir,
+                               fmt=simfmt, simple=simple)],
         spec={'_category': wfname},
         parents=analyses,
         name='PostProcess T={} P={}'.format(T, P)
