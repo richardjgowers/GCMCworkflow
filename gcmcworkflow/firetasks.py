@@ -480,11 +480,11 @@ class PostProcess(fw.FiretaskBase):
 
         runs, pps = make_sampling_point(
             parent_fw=None,
-            T=self['temperature'],
-            P=self['pressure'],
+            temperature=self['temperature'],
+            pressure=self['pressure'],
             ncycles=ncycles,
             nparallel=nparallel,
-            simfmt=self['fmt'],
+            fmt=self['fmt'],
             wfname=wfname,
             template=template,
             workdir=self['workdir'],

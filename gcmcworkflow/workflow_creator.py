@@ -58,9 +58,14 @@ def make_workflow(spec, simple=True):
     for T, P in itertools.product(temperatures, pressures):
         this_condition, this_condition_PP = make_sampling_point(
             parent_fw=init,
-            T=T, P=P, ncycles=ncycles, nparallel=nparallel,
-            simfmt=simfmt, wfname=wfname,
-            template=template, workdir=workdir,
+            temperature=T,
+            pressure=P,
+            ncycles=ncycles,
+            nparallel=nparallel,
+            simfmt=simfmt,
+            wfname=wfname,
+            template=template,
+            workdir=workdir,
             simple=simple,
         )
         simulations.extend(this_condition)
@@ -114,7 +119,9 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
     copy = fw.Firework(
         [firetasks.CopyTemplate(
-            fmt=fmt, temperature=temperature, pressure=pressure,
+            fmt=fmt,
+            temperature=temperature,
+            pressure=pressure,
             ncycles=ncycles,
             parallel_id=parallel_id,
             workdir=workdir,
@@ -137,7 +144,9 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     )
     analyse = fw.Firework(
         [firetasks.AnalyseSimulation(
-            fmt=fmt, temperature=temperature, pressure=pressure,
+            fmt=fmt,
+            temperature=temperature,
+            pressure=pressure,
             parallel_id=parallel_id,
             workdir=workdir,
             # if this is a restart, pass previous results, else None
@@ -154,8 +163,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     return copy, run, analyse
 
 
-def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
-                        simfmt, wfname, template, workdir, simple,
+def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
+                        fmt, wfname, template, workdir, simple,
                         previous_results=None, previous_simdirs=None):
     """Make many Simfireworks for a given conditions
 
@@ -163,10 +172,8 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
     ----------
     parent_fw : fireworks.Firework or None
       Reference to InitTemplate that Simfireworks are children to
-    T : float
-      temperature
-    P : float
-      pressure
+    temperature, pressure : float
+      conditions to sample
     ncycles : int
       length of simulation
     nparallel : int
@@ -195,9 +202,15 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
 
     for i in range(nparallel):
         copy, run, analyse = make_runstage(
-            parent_fw=parent_fw, temperature=T, pressure=P, ncycles=ncycles,
-            parallel_id=i, fmt=simfmt, wfname=wfname,
-            template=template, workdir=workdir,
+            parent_fw=parent_fw,
+            temperature=temperature,
+            pressure=pressure,
+            ncycles=ncycles,
+            parallel_id=i,
+            fmt=fmt,
+            wfname=wfname,
+            template=template,
+            workdir=workdir,
             previous_simdir=previous_simdirs.get(i, None),
             previous_result=previous_results.get(i, None),
         )
@@ -206,11 +219,16 @@ def make_sampling_point(parent_fw, T, P, ncycles, nparallel,
         analyses.append(analyse)
 
     postprocess = fw.Firework(
-        [firetasks.PostProcess(temperature=T, pressure=P, workdir=workdir,
-                               fmt=simfmt, simple=simple)],
+        [firetasks.PostProcess(
+            temperature=temperature,
+            pressure=pressure,
+            workdir=workdir,
+            fmt=fmt,
+            simple=simple,
+        )],
         spec={'_category': wfname},
         parents=analyses,
-        name='PostProcess T={} P={}'.format(T, P)
+        name='PostProcess T={} P={}'.format(temperature, pressure)
     )
 
     return runs + analyses, postprocess
