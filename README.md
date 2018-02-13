@@ -48,6 +48,7 @@ In order to define a sampling Workflow, a "spec file" must be given, an example 
 This contains information on the temperatures (78K) and pressures (100 to 201,000 Pa) we wish to sample, as well as providing the paths of the templates to be used.
 
 ```
+# Example workflow_spec.yml file
 name: ArIrmof1
 pressures:
  - logspace(100, 125000.0, 10)
