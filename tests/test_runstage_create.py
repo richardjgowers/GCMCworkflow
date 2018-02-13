@@ -7,7 +7,9 @@ Run Stage is a (Copy, Run, Analyse) sequence of Fireworks
 import pytest
 
 import fireworks as fw
+
 import gcmcworkflow as gcwf
+from gcmcworkflow.workflow_creator import make_runstage
 
 
 @pytest.fixture()
@@ -28,7 +30,7 @@ def runstage_parameters():
 
 def test_make_runstage_len(runstage_parameters):
     # should return 3 Firework objects
-    fws = gcwf.workflow_creator.make_runstage(**runstage_parameters)
+    fws = make_runstage(**runstage_parameters)
 
     assert len(fws) == 3
     assert all(isinstance(thing, fw.Firework) for thing in fws)
@@ -36,17 +38,17 @@ def test_make_runstage_len(runstage_parameters):
 
 @pytest.fixture()
 def copy_fw(runstage_parameters):
-    return gcwf.workflow_creator.make_runstage(**runstage_parameters)[0]
+    return make_runstage(**runstage_parameters)[0]
 
 
 @pytest.fixture()
 def run_fw(runstage_parameters):
-    return gcwf.workflow_creator.make_runstage(**runstage_parameters)[1]
+    return make_runstage(**runstage_parameters)[1]
 
 
 @pytest.fixture()
 def analyse_fw(runstage_parameters):
-    return gcwf.workflow_creator.make_runstage(**runstage_parameters)[2]
+    return make_runstage(**runstage_parameters)[2]
 
 
 # For each Firework, check that it is the right object inside
@@ -78,3 +80,35 @@ def test_run_fw_args(runstage_parameters, run_fw, arg):
 @pytest.mark.parametrize('arg', gcwf.firetasks.AnalyseSimulation.required_params)
 def test_analyse_fw_args(runstage_parameters, analyse_fw, arg):
     assert analyse_fw.tasks[0][arg] == runstage_parameters[arg]
+
+
+@pytest.mark.parametrize('arg', ['previous_simdir', 'previous_result'])
+def test_optional_kwargs(runstage_parameters, arg):
+    # check that either both previous_simdir and previous_result are supplied
+    runstage_parameters[arg] = 'something'
+    with pytest.raises(ValueError):
+        make_runstage(**runstage_parameters)
+
+
+# Check that the optional arguments are in the right place
+@pytest.fixture()
+def restart_runstage_parameters(runstage_parameters):
+    runstage_parameters['previous_simdir'] = '/my_previous/simdir/'
+    runstage_parameters['previous_result'] = 'previous,result\nhere,value\n'
+
+    return runstage_parameters
+
+
+def test_restart_copy_fw(restart_runstage_parameters):
+    restart_runstage = make_runstage(**restart_runstage_parameters)
+    copy_task = restart_runstage[0].tasks[0]
+
+    assert (copy_task['previous_simdir'] ==
+            restart_runstage_parameters['previous_simdir'])
+
+def test_restart_analyse_fw(restart_runstage_parameters):
+    restart_runstage = make_runstage(**restart_runstage_parameters)
+    analyse_task = restart_runstage[2].tasks[0]
+
+    assert (analyse_task['previous_result'] ==
+            restart_runstage_parameters['previous_result'])

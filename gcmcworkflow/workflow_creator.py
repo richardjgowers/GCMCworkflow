@@ -141,7 +141,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
             parallel_id=parallel_id,
             workdir=workdir,
             # if this is a restart, pass previous results, else None
-            previous_results=previous_result,
+            previous_result=previous_result,
         )],
         spec={
             '_allow_fizzled_parents': True,
