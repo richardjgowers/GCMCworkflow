@@ -2,26 +2,14 @@
 
 
 """
-import glob
-import numpy as np
 import os
-import pandas as pd
 import re
 import random
 
+from hydraspa.gather import parse_results
+from hydraspa.util import is_finished
+
 from . import utils
-
-# Regex patterns to grab stuff from Raspa output
-# grabs the integer values before and after 'out of'
-# eg '20 out of 200' -> (20, 200)
-CYCLE_PAT = re.compile(r'^[C].+?(\d+)(?: out of )(\d+)')
-# grab the integer molecules of Component 0
-# eg 'Component 0 ... 150/0/0' -> (150,)
-NABS_PAT = re.compile(r'(?:Component 0).+?(?:(\d+)\/\d\/\d)')
-
-# matches the instantaneous mol/kg on this line:              vvvvvvvvvvvv
-# absolute adsorption:   0.00000 (avg.   0.00000) [mol/uc],   0.0000000000 (avg.   0.0000000000) [mol/kg],   0.0000000000 (avg.   0.0000000000) [mg/g]
-MMOL_PAT = re.compile(r'^(?:\s+absolute adsorption:).+?(\d+\.\d+)(?=\s+\(avg\.\s+\d+\.\d+\)\s+\[mol\/kg\])')
 
 
 def check_exit(tree):
@@ -36,19 +24,14 @@ def check_exit(tree):
     ValueError
       if simulation didn't start
     """
-    # check it exists
-    try:
-        outfile = glob.glob(os.path.join(tree, 'Output/System_0/*.data'))[0]
-    except IndexError:
-        # if the glob couldn't be sliced...
+    ret_code = is_finished(tree)
+
+    if ret_code == 2:
         raise ValueError("Output not created")
-
-    # check last 10 lines of file for this
-    if not b'Simulation finished' in utils.tail(outfile, 10):
-        #raise ValueError("Output did not exit correctly")
+    elif ret_code == 1:
         return False
-
-    return True
+    else:
+        return True
 
 
 def update_input(treant, T, P, ncycles):
@@ -100,64 +83,6 @@ def set_restart(simtree):
             if 'RestartFile' in line:
                 line = 'RestartFile yes\n'
             newfile.write(line)
-
-
-def parse_results(tree):
-    """Parse results from a Raspa simulation, returns absolute mol/kg
-
-    Ignores all values from [Init] period. Simulations shouldn't be using
-    this option anyway, as we're dealing with equilibration ourselves.
-
-    Parameters
-    ----------
-    tree: str
-      path where the simulation took place
-
-    Returns
-    -------
-    results : pandas.Series
-      absolute loadings in mol/kg
-    """
-    # return pandas series of the results
-    outfile = glob.glob(os.path.join(tree, 'Output/System_0/*.data'))[0]
-
-    cycles = []
-    values = []
-
-    with open(outfile, 'r') as inf:
-        for line in inf:
-            cmat = re.search(CYCLE_PAT, line)
-            if cmat:
-                cycles.append(cmat.groups()[0])
-                continue
-            lmat = re.search(MMOL_PAT, line)
-            if lmat:
-                values.append(lmat.groups()[0])
-
-    cycles = np.array(cycles, dtype=np.int)
-    values = np.array(values, dtype=np.float32)
-
-    df = pd.Series(values, index=cycles)
-    df.name = 'density'
-    df.index.name = 'time'
-
-    return df
-
-def parse_results_simple(tree):
-    outfile = glob.glob(os.path.join(tree, 'Output/System_0/*.data'))[0]
-
-    wantval = False
-    with open(outfile, 'r') as inf:
-        for line in inf:
-            if wantval and line.lstrip('\t').startswith(
-                    'Average loading absolute [molecules/unit cell]'):
-                line = line.split(']')[1]
-                line = line.split('+')[0]
-                val = float(line)
-                break
-            if line.startswith('Number of molecules:'):
-                wantval = True
-    return val
 
 
 def calc_remainder(simdir):
