@@ -21,7 +21,7 @@ requirements:
     - dill
     - scipy
     - statsmodels
-    - hydraspa >=0.0.5
+    - hydraspa >=0.2.0
     - terminaltables
     - termcolor
     - mmtf-python
