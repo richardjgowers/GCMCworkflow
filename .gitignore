@@ -9,3 +9,4 @@
 *.egg
 \.coverage
 tests/htmlcov/
+build/
