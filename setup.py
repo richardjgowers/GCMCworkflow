@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst'), 'r') as f:
+with open(os.path.join(here, 'README.md'), 'r') as f:
     long_description = f.read()
 with open(os.path.join(here, 'gcmcworkflow', '__init__.py'), 'r') as f:
     version = re.search("'(\d+\.\d+\.\d+)'", f.read()).groups()[0]
