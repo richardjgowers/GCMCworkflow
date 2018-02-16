@@ -20,12 +20,6 @@ def test_binary_working(sample_input):
     assert os.path.exists('Output')
 
 
-def test_simple_parser(successful_raspa):
-    res = gcwf.raspatools.parse_results_simple(successful_raspa)
-
-    assert res == 18.4858270635
-
-
 def test_parser_name(successful_raspa):
     res = gcwf.raspatools.parse_results(successful_raspa)
     assert isinstance(res, pd.Series)
