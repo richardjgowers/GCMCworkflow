@@ -66,15 +66,8 @@ def template_contents():
 @pytest.fixture
 def launchpad():
     """Returns a function that runs a Firework or Workflow"""
-    lp = fw.LaunchPad(
-        # TODO: Make this work via env variables for portability
-        #host='ds013216.mlab.com',
-        #name='wftests',
-        #port=13216,
-        #username='test',
-        #password='dude',
-    )
-    #lp.reset('', require_password=False)
+    lp = fw.LaunchPad()
+    lp.reset('', require_password=False)
 
     def do_launch(thingy):
         """wf - firework or Workflow"""
@@ -95,6 +88,8 @@ def launchpad():
                 break
         if num_ran < len(fw_ids):
             raise ValueError("Added workflow didn't complete")
+
+        lp.reset('', require_password=False)
 
         return
 
