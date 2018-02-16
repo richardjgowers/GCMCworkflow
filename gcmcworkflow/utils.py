@@ -75,7 +75,7 @@ def parse_sim_path(path):
     -------
     simhash, temperature, pressure, generation, parallel_id
     """
-    match = re.search(SIM_PATH_PATTERN, path).groups()
+    match = re.search(SIM_PATH_PATTERN, path)
 
     simhash, T, P, gen, par = match.groups()
     if simhash is None:
