@@ -11,7 +11,7 @@ def test_already_existing(sample_input, launchpad, template_contents):
     pid = 2
 
     # make something in the way
-    newdir = gcwf.utils.gen_sim_path(T, P, gen, pid)
+    newdir = gcwf.utils.gen_sim_path('hash123', T, P, gen, pid)
     os.makedirs(newdir)
     with open(os.path.join(newdir, 'thing.txt'), 'w') as out:
         out.write('hello!\n')
@@ -24,12 +24,13 @@ def test_already_existing(sample_input, launchpad, template_contents):
         workdir=os.path.abspath('.'),
     )],
                      spec={
+                         'simhash': 'hash123',
                          'template': os.path.abspath('template'),
                      },
     )
     launchpad(cp)
 
-    newdir2 = gcwf.utils.gen_sim_path(T, P, gen + 1, pid)
+    newdir2 = gcwf.utils.gen_sim_path('hash123', T, P, gen + 1, pid)
 
     assert os.path.exists(newdir)
     assert os.path.exists(newdir2)
