@@ -4,7 +4,7 @@ import fireworks as fw
 import re
 import yaml
 
-from .utils import NAME_PATTERN, SIM_GRAB
+from .utils import NAME_PATTERN, SIM_GRAB, parse_sim_path
 
 
 def read_lpad_spec(path):
@@ -87,13 +87,27 @@ def get_workflow_report(wfname, lp=None, lpspec=None):
     # grab sim fireworks from this workflow
     sims = lp.fireworks.find(
         {'fw_id': {'$in': wf['nodes']}, 'name': NAME_PATTERN},
-        {'name': True, 'state': True},  # only name and state required
+        {'spec': True, 'state': True},  # only spec and state required
     )
+
+    # find the last generation for each (T, P, v)
+    finals = dict()
+    for sim in sims:
+        details = parse_sim_path(sim['spec']['simtree'])
+        key = (details.T, details.P, details.parallel_id)
+
+        if not key in finals:
+            finals[key] = sim
+        else:
+            other = finals[key]
+
+            finals[key] = max(
+                sim, other,
+                key=lambda x: parse_sim_path(x['spec']['simtree']).gen_id)
 
     status = defaultdict(list)
 
-    for sim in sims:
-        T, P, v = re.match(SIM_GRAB, sim['name']).groups()
+    for (T, P, v), sim in finals.items():
         status[T, P].append(sim['state'])
 
     return status
