@@ -31,7 +31,7 @@ pip install raspa2
 
 ## Usage and basic tutorial
 
-GCMCWorkflow relies on [Fireworks](https://github.com/materialsproject/fireworks) for managing the Workflow execution.  You should first [https://materialsproject.github.io/fireworks/introduction.html](familiarise yourself with this package), especially [how to use a MongoDB server](https://materialsproject.github.io/fireworks/quickstart.html?highlight=mongo)
+GCMCWorkflow relies on [Fireworks](https://github.com/materialsproject/fireworks) for managing the Workflow execution.  You should first [familiarise yourself with this package](https://materialsproject.github.io/fireworks/introduction.html), especially [how to use a MongoDB server](https://materialsproject.github.io/fireworks/quickstart.html?highlight=mongo)
 
 A short example for how to set up a simulation of the GCMC sampling of Argon adsorption in IRMOF-1 using [Raspa](https://github.com/numat/RASPA2) is given: 
 
