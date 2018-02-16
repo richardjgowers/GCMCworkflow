@@ -68,6 +68,7 @@ def test_pickling_roundtrip():
     assert new(1, 2) == 12
 
 def test_gen_sim_path():
-    pth = gcwf.utils.gen_sim_path(123.0, 200.0, 1, 2)
+    pth = gcwf.utils.gen_sim_path(
+        'hash123', 123.0, 200.0, 1, 2)
 
-    assert pth == 'sim_T123.0_P200.0_gen1_v2'
+    assert pth == 'simhash123_T123.0_P200.0_gen1_v2'
