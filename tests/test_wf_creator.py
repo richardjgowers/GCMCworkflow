@@ -17,7 +17,8 @@ def RASPA_FILES():
 def InitTempFW(sample_input):
     firework = fw.Firework(
         gcwf.firetasks.InitTemplate(
-            contents=gcwf.utils.slurp_directory('template')),
+            contents=gcwf.utils.escape_template(
+                gcwf.utils.slurp_directory('template'))),
         spec={"workdir": ".",
               "name":"Template init test"}
     )
