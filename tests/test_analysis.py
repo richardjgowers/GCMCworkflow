@@ -8,10 +8,10 @@ def test_rsp_equil(rsp_ts):
     assert analysis.find_eq(rsp_ts) == 0
 
 def test_dlm_equil(dlm_ts):
-    assert analysis.find_eq(dlm_ts) == 2500000  # 1283000
+    assert analysis.find_eq(dlm_ts) == 1880000.0
 
 def test_twh_equil(twh_ts):
-    assert analysis.find_eq(twh_ts) == 218248
+    assert analysis.find_eq(twh_ts) == 226127
 
 def test_rsp_g(rsp_ts):
     eq = analysis.find_eq(rsp_ts)
@@ -19,8 +19,8 @@ def test_rsp_g(rsp_ts):
 
 def test_dlm_g(dlm_ts):
     eq = analysis.find_eq(dlm_ts)
-    assert analysis.find_g(dlm_ts.loc[eq:]) == 470965
+    assert analysis.find_g(dlm_ts.loc[eq:]) == 471198
 
 def test_twh_g(twh_ts):
     eq = analysis.find_eq(twh_ts)
-    assert analysis.find_g(twh_ts.loc[eq:]) == 38848
+    assert analysis.find_g(twh_ts.loc[eq:]) == 38854
