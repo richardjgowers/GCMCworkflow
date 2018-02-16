@@ -206,7 +206,7 @@ class CopyTemplate(fw.FiretaskBase):
             # copy over Restart directory from previous simulation
             shutil.copytree(os.path.join(old, 'Restart'),
                             os.path.join(new, 'RestartInitial'))
-            raspatools.set_restart(simtree)
+            raspatools.set_restart(new)
         else:
             raise NotImplementedError
 
@@ -237,7 +237,11 @@ class CopyTemplate(fw.FiretaskBase):
             )
 
         return fw.FWAction(
-            update_spec={'simtree': os.path.abspath(sim_t)}
+            update_spec={
+                'simtree': os.path.abspath(sim_t),
+                'template': fw_spec['template'],
+                'simhash': fw_spec['simhash'],
+            }
         )
 
 
@@ -346,21 +350,27 @@ class AnalyseSimulation(fw.FiretaskBase):
           number of steps still left to run
         """
         if fmt == 'raspa':
-            raspatools.calc_remainder(simdir)
+            return raspatools.calc_remainder(simdir)
         else:
             raise NotImplementedError("Unrecognised format '{}' to parse"
                                       "".format(fmt))
 
-    def prepare_restart(self, template, previous_simdir, current_result,
-                        wfname):
+    def prepare_restart(self, template, simhash, previous_simdir,
+                        current_result, wfname):
         """Prepare a continuation of the same sampling point
 
         Parameters
         ----------
         template : str
           path to template to use
-        previous : str
+        simhash : str
+          7 digit simulation hash
+        previous_simdir : str
           path to previous simulation
+        current_result : pd.Series
+          results gathered so far
+        wfname : str
+          unique name of Workflow
 
         Returns
         -------
@@ -368,7 +378,7 @@ class AnalyseSimulation(fw.FiretaskBase):
           contains Copy, Run and Analyse Fireworks
         """
         # make run FW
-        ncycles_left = self.calc_remainder(self['fmt'], previous)
+        ncycles_left = self.calc_remainder(self['fmt'], previous_simdir)
 
         T = self['temperature']
         P = self['pressure']
@@ -387,7 +397,8 @@ class AnalyseSimulation(fw.FiretaskBase):
             template=template,
             workdir=self['workdir'],
             previous_simdir=previous_simdir,
-            previous_result=current_result,
+            previous_result=current_result.to_csv(),
+            simhash=simhash,
         )
 
         return [copy_fw, run_fw, analyse_fw]
@@ -412,6 +423,7 @@ class AnalyseSimulation(fw.FiretaskBase):
         if not finished:
             new_fws = self.prepare_restart(
                 template=fw_spec['template'],
+                simhash=fw_spec.get('simhash', ''),
                 previous_simdir=simtree,
                 current_result=results,
                 wfname=fw_spec['_category'],

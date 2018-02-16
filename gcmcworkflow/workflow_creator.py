@@ -89,7 +89,7 @@ def make_workflow(spec, simple=True):
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
                   fmt, wfname, template, workdir,
-                  previous_simdir=None, previous_result=None):
+                  previous_simdir=None, previous_result=None, simhash=None):
     """Make a single Run stage
 
     Parameters
@@ -116,6 +116,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     if ((previous_simdir is None and not previous_result is None) or
         (not previous_simdir is None and previous_result is None)):
         raise ValueError("Must supply *both* previous simdir and result")
+    if simhash is None:
+        simhash = ''
 
     copy = fw.Firework(
         [firetasks.CopyTemplate(
@@ -130,6 +132,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
         parents=parent_fw,
         spec={
             'template': template,
+            'simhash': simhash,
             '_category': wfname,
         },
         name='Copy T={} P={} v{}'.format(temperature, pressure, parallel_id),
