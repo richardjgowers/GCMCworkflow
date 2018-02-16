@@ -1,0 +1,5 @@
+[run]
+source=gcmcworkflow
+omit =
+    gcmcworkflow/genetics.py
+    gcmcworkflow/packer.py
