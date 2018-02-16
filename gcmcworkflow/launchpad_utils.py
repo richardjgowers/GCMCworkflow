@@ -87,7 +87,7 @@ def get_workflow_report(wfname, lp=None, lpspec=None):
     # grab sim fireworks from this workflow
     sims = lp.fireworks.find(
         {'fw_id': {'$in': wf['nodes']}, 'name': NAME_PATTERN},
-        {'spec': True, 'state': True},  # only spec and state required
+        {'spec': True, 'state': True, 'fw_id': True},
     )
 
     # find the last generation for each (T, P, v)
@@ -107,7 +107,13 @@ def get_workflow_report(wfname, lp=None, lpspec=None):
 
     status = defaultdict(list)
 
+    _, lost_ids, _ = lp.detect_lostruns()
+
     for (T, P, v), sim in finals.items():
-        status[T, P].append(sim['state'])
+        if sim['fw_id'] in lost_ids:
+            state = 'LOST'
+        else:
+            state = sim['state']
+        status[T, P].append(state)
 
     return status

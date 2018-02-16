@@ -40,6 +40,7 @@ STATUS = [
     ('RUNNING', colored('Running  ', 'yellow')),
     ('COMPLETED', colored('Finished ', 'green')),
     ('FIZZLED', colored('Errored  ', 'red')),
+    ('LOST', colored('Lost!  ', 'red')),
 ]
 
 
