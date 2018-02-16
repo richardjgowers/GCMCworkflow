@@ -1,6 +1,6 @@
 """Tests for the Creation of a "Run stage" via make_runstage
 
-Run Stage is a (Copy, Run, Analyse) sequence of Fireworks
+Run Stage is a (Copy, Run, PostProcess) sequence of Fireworks
 
 """
 
@@ -63,7 +63,7 @@ def test_run_fw_identity(run_fw):
 
 def test_analyse_fw_identity(analyse_fw):
     assert len(analyse_fw.tasks) == 1
-    assert isinstance(analyse_fw.tasks[0], gcwf.firetasks.AnalyseSimulation)
+    assert isinstance(analyse_fw.tasks[0], gcwf.firetasks.PostProcess)
 
 
 # For each Firework, check its parameters match the input arguments
@@ -77,7 +77,7 @@ def test_run_fw_args(runstage_parameters, run_fw, arg):
     assert run_fw.tasks[0][arg] == runstage_parameters[arg]
 
 
-@pytest.mark.parametrize('arg', gcwf.firetasks.AnalyseSimulation.required_params)
+@pytest.mark.parametrize('arg', gcwf.firetasks.PostProcess.required_params)
 def test_analyse_fw_args(runstage_parameters, analyse_fw, arg):
     assert analyse_fw.tasks[0][arg] == runstage_parameters[arg]
 

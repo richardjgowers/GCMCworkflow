@@ -58,7 +58,7 @@ def test_workflow_identity_and_dependency(dict_spec):
     fw_types = {
         gcwf.firetasks.InitTemplate: (1, 0),
         gcwf.firetasks.RunSimulation: (nconds * dict_spec['nparallel'], 1),
-        gcwf.firetasks.PostProcess: (nconds, dict_spec['nparallel']),
+        gcwf.firetasks.Analyse: (nconds, dict_spec['nparallel']),
         gcwf.firetasks.IsothermCreate: (1, nconds),
     }
 

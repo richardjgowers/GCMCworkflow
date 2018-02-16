@@ -146,7 +146,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
         name=utils.gen_name(temperature, pressure, parallel_id),
     )
     analyse = fw.Firework(
-        [firetasks.AnalyseSimulation(
+        [firetasks.PostProcess(
             fmt=fmt,
             temperature=temperature,
             pressure=pressure,
@@ -160,7 +160,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
             '_category': wfname,
         },
         parents=[copy, run],
-        name='Analyse T={} P={} v{}'.format(temperature, pressure, parallel_id)
+        name='PostProcess T={} P={} v{}'.format(
+            temperature, pressure, parallel_id)
     )
 
     return copy, run, analyse
@@ -222,7 +223,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
         analyses.append(analyse)
 
     postprocess = fw.Firework(
-        [firetasks.PostProcess(
+        [firetasks.Analyse(
             temperature=temperature,
             pressure=pressure,
             workdir=workdir,
@@ -231,7 +232,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
         )],
         spec={'_category': wfname},
         parents=analyses,
-        name='PostProcess T={} P={}'.format(temperature, pressure)
+        name='Analyse T={} P={}'.format(temperature, pressure)
     )
 
     return runs + analyses, postprocess

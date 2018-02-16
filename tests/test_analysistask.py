@@ -1,4 +1,4 @@
-"""Tests for AnalyseSimulation
+"""Tests for PostProcess
 
 """
 import fireworks as fw
@@ -22,7 +22,7 @@ class TellTale(fw.FiretaskBase):
 def analysis_task(successful_raspa, launchpad):
     # run analysis on a successful raspa simulation
     firework = fw.Firework(
-        [gcwf.firetasks.AnalyseSimulation(
+        [gcwf.firetasks.PostProcess(
             fmt='raspa', temperature=200.0, pressure=100.0,
             parallel_id=1, workdir='.',
         ),
@@ -38,7 +38,7 @@ def analysis_task(successful_raspa, launchpad):
 def analysis_task_with_previous(successful_raspa, launchpad):
     # run analysis on a successful raspa simulation
     firework = fw.Firework(
-        [gcwf.firetasks.AnalyseSimulation(
+        [gcwf.firetasks.PostProcess(
             fmt='raspa', temperature=200.0, pressure=100.0,
             parallel_id=1, workdir='.',
             previous_result='0,123\n673,456\n',

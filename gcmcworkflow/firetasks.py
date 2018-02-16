@@ -35,12 +35,12 @@ SimFirework layout::
     RunSimulation       RunSimulation       RunSimulation             |
          |                   |                   |                    |
          v                   v                   v                    |
-   AnalyseSimulation   AnalyseSimulation   AnalyseSimulation          |
+    PostProcess         PostProcess         PostProcess               |
          |                   |                   |                    |
          +-------------------+-------------------+                    |
                              |                                        |
                              v                                        |
-                      PostProcess ------------------------------------+
+                          Analyse ------------------------------------+
                              |
                              v
                      to IsothermCreate
@@ -284,7 +284,7 @@ class RunSimulation(fw.FiretaskBase):
 
 
 @xs
-class AnalyseSimulation(fw.FiretaskBase):
+class PostProcess(fw.FiretaskBase):
     """Analyse a single simulation into format agnostic form
 
     Takes:
@@ -447,7 +447,7 @@ class AnalyseSimulation(fw.FiretaskBase):
 
 
 @xs
-class PostProcess(fw.FiretaskBase):
+class Analyse(fw.FiretaskBase):
     """End of sampling stage
 
     Gathers together timeseries from all parallel runs

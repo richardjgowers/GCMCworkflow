@@ -1,7 +1,7 @@
 """
 SimFW
 
-PostProcess
+Analyse
 
 CheckFlat
 
@@ -11,7 +11,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import numpy as np
 
 from . import firetasks
-#from .workflow_creator import make_Simfireworks, make_PostProcess
+#from .workflow_creator import make_Simfireworks, make_Analyse
 
 
 @xs
@@ -36,7 +36,7 @@ class CapacityDecider(fw.FiretaskBase):
                 wfname='Capacity', template=None,
                 workdir=None) for P in new_pressures]
 
-            pp = make_PostProcess()
+            pp = make_Analyse()
 
         new_me = fw.Firework(
             self.__class__(nparallel=nparallel, previous_results=previous),
@@ -140,7 +140,7 @@ def make_packing_workflow(spec, simple=True):
             simfmt=simfmt, wfname=wfname,
             template=template, workdir=workdir,
         )
-        this_condition_PP = make_PostProcess(
+        this_condition_PP = make_Analyse(
             parent_fw=this_condition,
             T=T, P=P,
             wfname=wfname,
