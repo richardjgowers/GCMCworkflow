@@ -44,7 +44,7 @@ def test_workflow_creator(dict_spec):
     # nconditions * nparallel simulation FWs
     # nconditions Analyses
     # 1 isotherm create FW
-    nexpected = 1 + nconds * dict_spec['nparallel'] + nconds + 1
+    nexpected = 1 + 3 * nconds * dict_spec['nparallel'] + nconds + 1
 
     assert len(wf.fws) == nexpected
 
