@@ -6,14 +6,15 @@ import subprocess
 import gcmcworkflow as gcwf
 
 
+@pytest.mark.skip
 def test_binary_working(sample_input):
     # check that running a raspa simulation even works..
     # 'template' is ready to run
     os.chdir('template')
 
-    assert os.path.exists('run.sh')
-    p = subprocess.run('./run.sh',
+    p = subprocess.run(gcwf.firetasks.RunSimulation.bin_name['raspa'],
                        check=True,
+                       shell=True,
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE)
 
