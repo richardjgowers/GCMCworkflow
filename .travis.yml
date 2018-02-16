@@ -11,7 +11,7 @@ install:
   - cd hydraspa
   - pip install -r requirements.txt .
   - cd ../
-  - rm -r hydraspa
+  - rm -rf hydraspa
   - pip install -r requirements.txt -e .
   - pip install pytest-cov codecov
 
