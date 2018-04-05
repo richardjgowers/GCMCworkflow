@@ -33,21 +33,27 @@ def split_around(sig, thresh):
     return sig.loc[:split].iloc[:-1], sig.loc[split:]
 
 
-def check_flat(sig, max_drift=5):
+def check_flat(sig):
     """Check a portion of signal is flat, else raise error
 
-    Flat defined as not drifting more than 5% of mean
+    Flat defined according to a Dickey-Fuller test with 0.05 p value
+
+    Parameters
+    ----------
+    sig : pd.Series
+      timeseries of the data to check
+
+    Returns
+    -------
+    flat : bool
+      boolean of flat (True) or not (False)
     """
-    x0, c = np.polyfit(sig.index, sig.values, 1)
+    result = adfuller(sig.values)
 
-    y0 = c + x0 * sig.index[0]
-    y1 = c + x0 * sig.index[-1]
+    p_value = result[1]
 
-    totdrift = 100 * abs((y1 - y0) / sig.mean())
-
-    # if x0 is very small, dont calculate drift and assume flat
-    # fixes issue with very long time series
-    return (x0 > 1e-4) and (totdrift > max_drift)
+    # 5% significance level
+    return p_value < 0.05
 
 
 def find_eq(signal):
