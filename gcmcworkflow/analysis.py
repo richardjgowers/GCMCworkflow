@@ -48,7 +48,7 @@ def check_flat(sig):
     flat : bool
       boolean of flat (True) or not (False)
     """
-    result = adfuller(sig.values)
+    result = stattools.adfuller(sig.values)
 
     p_value = result[1]
 
