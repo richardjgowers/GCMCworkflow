@@ -519,8 +519,10 @@ class Analyse(fw.FiretaskBase):
         simple = self.get('simple', True)
 
         g = 0.0
+        g_req = 10.0
         means = []
         stds = []
+        eqs = {}
 
         # starts True, turns false once a single sim wasn't equilibrated
         equilibrated = True
@@ -536,8 +538,9 @@ class Analyse(fw.FiretaskBase):
                 g += (production.index[-1] - production.index[0]) / eq
                 means.append(production.mean())
                 stds.append(production.std())
+                eqs[p_id] = eq
 
-        if equilibrated and (simple or (g > 20.0)):
+        if equilibrated and (simple or (g > g_req)):
             finished = True
             mean = np.mean(means)
             std = np.mean(stds)
@@ -546,7 +549,12 @@ class Analyse(fw.FiretaskBase):
 
         if finished:
             return fw.FWAction(
-                stored_data={'result': (mean, std)},
+                stored_data={
+                    'result': (mean, std),
+                    'equilibrated': equilibrated,
+                    'g': g,
+                    'finished': finished,
+                },
                 mod_spec=[{
                     # push the results of this condition to the Create task
                     '_push': {'results_array': (self['temperature'],
@@ -555,17 +563,22 @@ class Analyse(fw.FiretaskBase):
                 }],
             )
         else:
-            # TODO: Calc N remaining here
-            # For now just double duration
-            nreq = list(timeseries.values())[0].index[-1]
-            # or estimate how many are required
-            #if not equilibrated:
-            #    nreq = 'something'
-            #else:
-            #    # make educated guess
-            #    nreq = 'something else'
+            if not equilibrated:
+                # double length
+                nreq = list(timeseries.values())[0].index[-1]
+            else:
+                # make educated guess
+                total_steps_done = sum(timeseries[p_id].index[-1] - eqs[p_id]
+                                       for p_id in timeseries)
+                # how many steps for n+1 g?
+                nreq = int(total_steps_done / g * (g_req + 1))
 
             return fw.FWAction(
+                stored_data={
+                    'equilibrated': equilibrated,
+                    'g': g,
+                    'finished': finished,
+                },
                 detours=self.prepare_resample(
                     previous_simdirs={p_id: path
                                       for (p_id, path) in fw_spec['simpaths']},
@@ -574,7 +587,7 @@ class Analyse(fw.FiretaskBase):
                     ncycles=nreq,
                     wfname=fw_spec['_category'],
                     template=fw_spec['template'],
-                )
+                ),
             )
 
 
