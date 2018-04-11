@@ -76,15 +76,14 @@ def find_eq(signal):
     """
     back = signal.tail(len(signal) // 2)
 
-    # raises NotEquilibratedError if not flat
-    #if not check_flat(back):
-    #    raise NotEquilibratedError
+    if not check_flat(back):
+        raise NotEquilibratedError
 
     ir = isotonic.IsotonicRegression()
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
                        index=signal.index)
-    # find first point that we hit one "wiggle" below the max value
-    eq = ir_fit[ir_fit >= (ir_fit.iloc[-1] - back.std())].index[0]
+    # find first point that we hit two "wiggles" below the max value
+    eq = ir_fit[ir_fit >= (ir_fit.iloc[-1] - 2 * back.std())].index[0]
 
     return eq
 

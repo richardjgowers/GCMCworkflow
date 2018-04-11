@@ -437,6 +437,9 @@ class PostProcess(fw.FiretaskBase):
 
             return fw.FWAction(
                 stored_data={'result': results.to_csv()},
+                update_spec={
+                    'template': fw_spec['template'],
+                },
                 mod_spec=[{
                     '_push': {
                         'results': (parallel_id, results.to_csv()),
@@ -488,7 +491,7 @@ class Analyse(fw.FiretaskBase):
         """
         from .workflow_creator import make_sampling_point
 
-        nparallel = len(previous)
+        nparallel = len(previous_simdirs)
         # adjust ncycles based on how many parallel runs we have
         ncycles = ncycles // nparallel
 
@@ -507,7 +510,7 @@ class Analyse(fw.FiretaskBase):
             previous_simdirs=previous_simdirs,
         )
 
-        return fw.Workflow(runs + pps)
+        return fw.Workflow(runs + [pps])
 
     def run_task(self, fw_spec):
         timeseries = {p_id: utils.make_series(ts)
@@ -527,12 +530,12 @@ class Analyse(fw.FiretaskBase):
                 eq = analysis.find_eq(ts)
             except NotEquilibratedError:
                 equilibrated &= False
-
-            production = ts.loc[eq:]
-            # how many eq periods have we sampled for?
-            g += (production.index[-1] - production.index[0]) / eq
-            means.append(production.mean())
-            stds.append(production.std())
+            else:
+                production = ts.loc[eq:]
+                # how many eq periods have we sampled for?
+                g += (production.index[-1] - production.index[0]) / eq
+                means.append(production.mean())
+                stds.append(production.std())
 
         if equilibrated and (simple or (g > 20.0)):
             finished = True
@@ -553,18 +556,21 @@ class Analyse(fw.FiretaskBase):
             )
         else:
             # TODO: Calc N remaining here
+            # For now just double duration
+            nreq = list(timeseries.values())[0].index[-1]
             # or estimate how many are required
-            if not equilibrated:
-                nreq = 'something'
-            else:
-                # make educated guess
-                nreq = 'something else'
+            #if not equilibrated:
+            #    nreq = 'something'
+            #else:
+            #    # make educated guess
+            #    nreq = 'something else'
 
             return fw.FWAction(
                 detours=self.prepare_resample(
                     previous_simdirs={p_id: path
                                       for (p_id, path) in fw_spec['simpaths']},
-                    previous_results=timeseries,
+                    previous_results={p_id: ts.to_csv()
+                                      for (p_id, ts) in timeseries.items()},
                     ncycles=nreq,
                     wfname=fw_spec['_category'],
                     template=fw_spec['template'],

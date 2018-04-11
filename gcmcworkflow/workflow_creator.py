@@ -6,7 +6,7 @@ from . import utils
 from . import firetasks
 
 
-def make_workflow(spec, simple=True):
+def make_workflow(spec, simple=False):
     """Create an entire Isotherm creation Workflow
 
     Parameters
@@ -111,7 +111,9 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     workdir : str
       where to place the simulation
     previous_simdir : str, optional
-      if a restart, where the simulation
+      if a restart, where the simulation took place
+    previous_result : str, optional
+      if a restart,
     """
     if ((previous_simdir is None and not previous_result is None) or
         (not previous_simdir is None and previous_result is None)):
@@ -190,6 +192,12 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       path to template files
     workdir : str
       path to where to store results
+    simple : bool
+      complex recycle loop or not
+    previous_results : dict, optional
+      mapping of parallel_id to previous results
+    previous_simdirs : dict, optional
+      mapping of parallel_id to directory where sim took place
 
     Returns
     -------
