@@ -439,6 +439,7 @@ class PostProcess(fw.FiretaskBase):
                 stored_data={'result': results.to_csv()},
                 update_spec={
                     'template': fw_spec['template'],
+                    'simhash': fw_spec.get('simhash', ''),
                 },
                 mod_spec=[{
                     '_push': {
@@ -470,7 +471,7 @@ class Analyse(fw.FiretaskBase):
     optional_params = ['simple']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
-                         wfname, template):
+                         wfname, template, simhash):
         """Prepare a new sampling stage
 
         Parameters
@@ -483,6 +484,8 @@ class Analyse(fw.FiretaskBase):
           unique name for this Workflow
         template : str
           path to sim template
+        simhash : str
+          unique hash for the sim
 
         Returns
         -------
@@ -508,6 +511,7 @@ class Analyse(fw.FiretaskBase):
             simple=self['simple'],
             previous_results=previous_results,
             previous_simdirs=previous_simdirs,
+            simhash=simhash,
         )
 
         return fw.Workflow(runs + [pps])
@@ -587,6 +591,7 @@ class Analyse(fw.FiretaskBase):
                     ncycles=nreq,
                     wfname=fw_spec['_category'],
                     template=fw_spec['template'],
+                    simhash=fw_spec['simhash']
                 ),
             )
 

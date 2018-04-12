@@ -171,7 +171,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         fmt, wfname, template, workdir, simple,
-                        previous_results=None, previous_simdirs=None):
+                        simhash=None, previous_results=None, previous_simdirs=None):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -194,6 +194,8 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       path to where to store results
     simple : bool
       complex recycle loop or not
+    simhash : str, optional
+      unique string for this simulation template
     previous_results : dict, optional
       mapping of parallel_id to previous results
     previous_simdirs : dict, optional
@@ -225,6 +227,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             workdir=workdir,
             previous_simdir=previous_simdirs.get(i, None),
             previous_result=previous_results.get(i, None),
+            simhash=simhash,
         )
         runs.append(copy)
         runs.append(run)
