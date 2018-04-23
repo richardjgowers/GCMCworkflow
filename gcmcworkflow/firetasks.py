@@ -569,7 +569,8 @@ class Analyse(fw.FiretaskBase):
         else:
             if not equilibrated:
                 # double length
-                nreq = list(timeseries.values())[0].index[-1]
+                ts = list(timeseries.values())[0]
+                nreq = ts.index[-1] + (ts.index[1] - ts.index[0])
             else:
                 # make educated guess
                 total_steps_done = sum(timeseries[p_id].index[-1] - eqs[p_id]
