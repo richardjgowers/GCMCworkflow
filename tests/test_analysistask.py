@@ -24,7 +24,7 @@ def analysis_task(successful_raspa, launchpad):
     firework = fw.Firework(
         [gcwf.firetasks.PostProcess(
             fmt='raspa', temperature=200.0, pressure=100.0,
-            parallel_id=1, workdir='.',
+            parallel_id=1, workdir='.', template='.',
         ),
          TellTale()],
         spec={'simtree': os.path.abspath(successful_raspa)},
@@ -40,7 +40,7 @@ def analysis_task_with_previous(successful_raspa, launchpad):
     firework = fw.Firework(
         [gcwf.firetasks.PostProcess(
             fmt='raspa', temperature=200.0, pressure=100.0,
-            parallel_id=1, workdir='.',
+            parallel_id=1, workdir='.', template='.',
             previous_result='0,123\n673,456\n',
         ),
          TellTale()],
