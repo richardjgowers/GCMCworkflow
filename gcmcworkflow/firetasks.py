@@ -326,10 +326,8 @@ class PostProcess(fw.FiretaskBase):
         previous = utils.make_series(previous)
 
         # reindex the current timeseries to start after the last one
-        # we don't use the zeroth entry in this array
-        # therefore can just add maximum index of previous
-        # eg ([0, 1, 2], [0, 1, 2]) -> ([0, 1, 2], [1 + 2, 2 + 2])
-        current.index += previous.index.max()
+        dt = previous.index[1] - previous.index[0]
+        current.index += (previous.index.max() + dt)
 
         return previous.append(current.iloc[:])
 
