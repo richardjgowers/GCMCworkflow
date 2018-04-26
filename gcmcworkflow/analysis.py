@@ -49,7 +49,7 @@ def check_flat(sig):
       boolean of flat (True) or not (False)
     """
     # trim signal length to stop this becoming too slow
-    MAX_VALUES = 100000
+    MAX_VALUES = 10000
     if len(sig) > MAX_VALUES:
         d = len(sig) // MAX_VALUES
         sig = sig.iloc[::d]
