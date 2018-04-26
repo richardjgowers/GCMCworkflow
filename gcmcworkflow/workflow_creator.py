@@ -53,10 +53,10 @@ def make_workflow(spec, simple=True):
         name='Template Init',
     )
 
-    simulations = []  # list of simulation fireworks
-    post_processing = []  # list of post processing fireworks
+    simulation_steps = []  # list of simulation fireworks
+    analysis_steps = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
-        this_condition, this_condition_PP = make_sampling_point(
+        this_condition, this_condition_analysis = make_sampling_point(
             parent_fw=init,
             temperature=T,
             pressure=P,
@@ -68,18 +68,18 @@ def make_workflow(spec, simple=True):
             workdir=workdir,
             simple=simple,
         )
-        simulations.extend(this_condition)
-        post_processing.append(this_condition_PP)
+        simulation_steps.extend(this_condition)
+        analysis_steps.append(this_condition_analysis)
 
     iso_create = fw.Firework(
         [firetasks.IsothermCreate(workdir=workdir)],
-        parents=post_processing,
+        parents=analysis_steps,
         spec={'_category': wfname},
         name='Isotherm create',
     )
 
     wf = fw.Workflow(
-        [init] + simulations + post_processing + [iso_create],
+        [init] + simulation_steps + analysis_steps + [iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
@@ -113,7 +113,12 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     previous_simdir : str, optional
       if a restart, where the simulation took place
     previous_result : str, optional
-      if a restart,
+      if a restart, csv representation of previous results
+
+    Returns
+    -------
+    copy, run, analyse
+      tuple of fw.Firework objects
     """
     if ((previous_simdir is None and not previous_result is None) or
         (not previous_simdir is None and previous_result is None)):
@@ -147,7 +152,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
         },
         name=utils.gen_name(temperature, pressure, parallel_id),
     )
-    analyse = fw.Firework(
+    postprocess = fw.Firework(
         [firetasks.PostProcess(
             fmt=fmt,
             temperature=temperature,
@@ -166,12 +171,13 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
             temperature, pressure, parallel_id)
     )
 
-    return copy, run, analyse
+    return copy, run, postprocess
 
 
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         fmt, wfname, template, workdir, simple,
-                        simhash=None, previous_results=None, previous_simdirs=None):
+                        simhash=None, previous_results=None,
+                        previous_simdirs=None):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -212,10 +218,10 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
         previous_simdirs = dict()
 
     runs = []
-    analyses = []
+    postprocesses = []
 
     for i in range(nparallel):
-        copy, run, analyse = make_runstage(
+        copy, run, postprocess = make_runstage(
             parent_fw=parent_fw,
             temperature=temperature,
             pressure=pressure,
@@ -231,9 +237,9 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
         )
         runs.append(copy)
         runs.append(run)
-        analyses.append(analyse)
+        postprocesses.append(postprocess)
 
-    postprocess = fw.Firework(
+    analysis = fw.Firework(
         [firetasks.Analyse(
             temperature=temperature,
             pressure=pressure,
@@ -242,8 +248,8 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             simple=simple,
         )],
         spec={'_category': wfname},
-        parents=analyses,
+        parents=postprocesses,
         name='Analyse T={} P={}'.format(temperature, pressure)
     )
 
-    return runs + analyses, postprocess
+    return runs + postprocesses, analysis
