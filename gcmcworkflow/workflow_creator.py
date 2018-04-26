@@ -6,7 +6,7 @@ from . import utils
 from . import firetasks
 
 
-def make_workflow(spec, simple=True):
+def make_workflow(spec, simple=False):
     """Create an entire Isotherm creation Workflow
 
     Parameters
