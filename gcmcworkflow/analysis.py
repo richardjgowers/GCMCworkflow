@@ -48,6 +48,11 @@ def check_flat(sig):
     flat : bool
       boolean of flat (True) or not (False)
     """
+    # trim signal length to stop this becoming too slow
+    MAX_VALUES = 100000
+    if len(sig) > MAX_VALUES:
+        d = len(sig) // MAX_VALUES
+        sig = sig.iloc[::d]
     result = stattools.adfuller(sig.values)
 
     p_value = result[1]
