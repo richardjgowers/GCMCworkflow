@@ -16,7 +16,7 @@ install:
   - pip install pytest-cov codecov
 
 script:
- - pytest --cov=./gcmcworkflow
+ - pytest -v --cov=./gcmcworkflow
 
 after_success:
  - codecov
