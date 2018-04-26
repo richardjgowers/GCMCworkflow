@@ -106,4 +106,4 @@ def test_previous_results(analysis_task_with_previous, successful_raspa_results)
     assert results[1] == '673,456.0'
     cyc, loading = results[2].split(',')
     assert cyc == '1346'
-    assert float(loading) == pytest.approx(successful_raspa_results[1][1])
+    assert float(loading) == pytest.approx(successful_raspa_results[0][1])

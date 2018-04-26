@@ -331,7 +331,7 @@ class PostProcess(fw.FiretaskBase):
         # eg ([0, 1, 2], [0, 1, 2]) -> ([0, 1, 2], [1 + 2, 2 + 2])
         current.index += previous.index.max()
 
-        return previous.append(current.iloc[1:])
+        return previous.append(current.iloc[:])
 
     @staticmethod
     def calc_remainder(fmt, simdir):
