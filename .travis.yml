@@ -7,11 +7,6 @@ python:
   - "3.6"
 
 install:
-  - git clone https://github.com/richardjgowers/hydraspa.git
-  - cd hydraspa
-  - pip install -r requirements.txt .
-  - cd ../
-  - rm -rf hydraspa
   - pip install -r requirements.txt -e .
   - pip install pytest-cov codecov
 
