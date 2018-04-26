@@ -10,11 +10,8 @@ Welcome to GCMCWorkflow's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   self
+   installation
+   tutorial
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Hello this is the home page.

@@ -40,7 +40,7 @@ release = ''
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -97,7 +97,10 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+html_sidebars = {'**': ['globaltoc.html',
+                        'relations.html',
+                        'sourcelink.html',
+                        'searchbox.html']}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -158,3 +161,5 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
