@@ -11,7 +11,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import numpy as np
 
 from . import firetasks
-#from .workflow_creator import make_Simfireworks, make_Analyse
+from .workflow_creator import make_sampling_point
 
 
 @xs
@@ -30,17 +30,23 @@ class CapacityDecider(fw.FiretaskBase):
         new_pps = []
 
         for P in new_presures:
-            new_sims = [make_Simfireworks(
+            runs, pps = make_sampling_point(
                 parent_fw=None,
-                T=temperature, P=P, ncycles=None,
-                wfname='Capacity', template=None,
-                workdir=None) for P in new_pressures]
-
-            pp = make_Analyse()
+                temperature=temperature,
+                pressure=P,
+                ncycles=None,
+                nparallel=1,
+                fmt=self['fmt'],
+                wfname=wfname,
+                template=template,
+                workdir=self['workdir'],
+                simple=False,
+                simhash=simhash,
+            )
 
         new_me = fw.Firework(
-            self.__class__(nparallel=nparallel, previous_results=previous),
-            parents=new_pps,
+            [self.__class__(nparallel=nparallel, previous_results=previous)],
+            parents=pps,
         )
 
     @staticmethod
