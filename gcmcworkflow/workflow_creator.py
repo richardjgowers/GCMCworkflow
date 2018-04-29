@@ -1,6 +1,5 @@
 import itertools
 import fireworks as fw
-import os
 
 from . import utils
 from . import firetasks
