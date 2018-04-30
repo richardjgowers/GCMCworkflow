@@ -16,6 +16,27 @@ from . import utils
 from .workflow_creator import make_sampling_point
 
 
+def kinda_equal(result_a, result_b):
+    """Are two results sort of equal?
+
+    Parameters
+    ----------
+    result_a, result_b : tuple of (mean, std)
+
+    Returns
+    -------
+    equal : bool
+      True if results are within one std of each other
+    """
+    a, da = result_a
+    a_low, a_high = a - da, a + da
+    b, db = result_b
+    b_low, b_high = b - db, b + db
+
+    return ((b_low < a_high < b_high) or
+            (a_low < b_high < a_high))
+
+
 @xs
 class CapacityDecider(fw.FiretaskBase):
     required_params = ['fmt', 'workdir']
@@ -73,14 +94,14 @@ class CapacityDecider(fw.FiretaskBase):
         decision : bool
           True if flat
         """
-        # sort by pressure
-        vals = np.array([r[2] for r in results])
-        mean = vals.mean()
+        # tuples of mean and std for each P
+        results = [(r[2], r[3]) for r in results]
+        # check all pairs of results are "kinda_equal"
+        # ie their mean +- std overlap
+        return all(kinda_equal(x, y)
+                   for x, y in itertools.combinations(results, 2))
 
-        # are all values within 5% of the mean?
-        return np.abs(((vals - mean) / mean) < 0.05).all()
-
-    def run_rask(self, fw_spec):
+    def run_task(self, fw_spec):
         # results are given as (T, P, mean, std, g)
         total_results = (fw_spec['results_array'] +
                          self.get('previous_results', []))
@@ -173,7 +194,10 @@ def make_capacity_measurement(spec):
         [CapacityDecider(fmt=simfmt, workdir=workdir)],
         # pass init to give template in spec
         parents=[init] + analysis_steps,
-        spec={'_category': wfname},
+        spec={
+            '_category': wfname,
+            'template': template,
+        },
         name='Capacity decider',
     )
 
