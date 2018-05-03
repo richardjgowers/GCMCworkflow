@@ -145,3 +145,8 @@ def twh_ts():
 def rsp_ts():
     return gcwf.utils.read_csv(os.path.join(HERE,
                                             'timeseries/rsp_ts.csv'))
+
+@pytest.fixture()
+def late_upswing_ts():
+    return gcwf.utils.read_csv(os.path.join(HERE,
+                                            'timeseries/late_upswing.csv'))

@@ -77,18 +77,18 @@ def find_eq(signal):
     Raises
     ------
     NotEquilibratedError
-      if the back half of the signal has over 5% drift
+      if the back half of the signal has significant drift
     """
+    # Grab back half of the signal and check that it is flat
     back = signal.tail(len(signal) // 2)
-
     if not check_flat(back):
         raise NotEquilibratedError
 
     ir = isotonic.IsotonicRegression()
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
                        index=signal.index)
-    # find first point that we hit two "wiggles" below the max value
-    eq = ir_fit[ir_fit >= (ir_fit.iloc[-1] - 2 * back.std())].index[0]
+    # find first point that we hit two "wiggles" below the assumed mean
+    eq = ir_fit[ir_fit >= (back.mean() - 2 * back.std())].index[0]
 
     return eq
 
