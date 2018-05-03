@@ -6,7 +6,7 @@ docopt
 dill
 scipy
 statsmodels
-hydraspa>=0.2.0
+hydraspa>=0.3.0
 terminaltables
 termcolor
 mmtf-python
