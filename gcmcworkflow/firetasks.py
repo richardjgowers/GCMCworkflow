@@ -164,12 +164,13 @@ class CopyTemplate(fw.FiretaskBase):
     Provides: simtree - path to the customised version of the template
     """
     required_params = ['temperature', 'pressure', 'fmt']
-    optional_params = ['previous_simdir', 'workdir', 'parallel_id', 'ncycles']
+    optional_params = ['previous_simdir', 'workdir', 'parallel_id', 'ncycles',
+                       'use_grid']
 
     @staticmethod
-    def update_input(target, fmt, T, P, n):
+    def update_input(target, fmt, T, P, n, use_grid=False):
         if fmt == 'raspa':
-            raspatools.update_input(target, T, P, n)
+            raspatools.update_input(target, T, P, n, use_grid=use_grid)
         else:
             raise NotImplementedError
 
@@ -227,6 +228,7 @@ class CopyTemplate(fw.FiretaskBase):
             T=self['temperature'],
             P=self['pressure'],
             n=self.get('ncycles', None),
+            use_grid=self.get('use_grid', False),
         )
 
         if self.get('previous_simdir', None) is not None:

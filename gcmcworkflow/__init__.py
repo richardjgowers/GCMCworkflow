@@ -14,6 +14,8 @@ from .spec_parser import read_spec
 from . import raspatools
 from . import firetasks
 
+from . import grids
+
 from . import workflow_creator
 from .workflow_creator import make_workflow
 

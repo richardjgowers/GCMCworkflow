@@ -34,7 +34,7 @@ def check_exit(tree):
         return True
 
 
-def update_input(treant, T, P, ncycles):
+def update_input(treant, T, P, ncycles, use_grid=False):
     """Update the simulation input for a given treant
 
     If any parameters are None, the value present in the input file is not altered.
@@ -56,6 +56,14 @@ def update_input(treant, T, P, ncycles):
 
     seeded = False
     seedline = 'RandomSeed {}\n'.format(random.randint(1, 1e6))
+    # which lines we shouldn't blindly copy over
+    forbidden = (
+        'UseTabularGrid',
+        'SpacingVDWGrid',
+        'SpacingCoulombGrid',
+        'NumberOfGrids',
+        'GridTypes',
+    )
 
     with open(simfile, 'w') as newfile, open(simfile + '.bak', 'r') as oldfile:
         for line in oldfile:
@@ -68,9 +76,19 @@ def update_input(treant, T, P, ncycles):
                 line = "ExternalTemperature {}\n".format(T)
             elif ('NumberOfCycles' in line) and (ncycles is not None):
                 line = "NumberOfCycles {}\n".format(ncycles)
-            newfile.write(line)
+            if not line.lstrip().startswith(forbidden):
+                newfile.write(line)
         if not seeded:
             newfile.write(seedline)
+        if use_grid:
+            gastypes = determine_gastypes(treant)
+
+            newfile.write('\n')
+            newfile.write('UseTabularGrid     yes\n')
+            newfile.write('SpacingVDWGrid     0.1\n')
+            newfile.write('SpacingCoulombGrid 0.1\n')
+            newfile.write('NumberOfGrids      {}\n'.format(len(gastypes)))
+            newfile.write('GridTypes          {}\n'.format(' '.join(gastypes)))
 
 
 def set_restart(simtree):
@@ -83,6 +101,21 @@ def set_restart(simtree):
             if 'RestartFile' in line:
                 line = 'RestartFile yes\n'
             newfile.write(line)
+
+
+def determine_types(simdir):
+    """Determine all atom types in gas species
+
+    Parameters
+    ----------
+    simdir : str
+      where the simulation lives, will look for 'pseudo_atoms.def'
+
+    Returns
+    -------
+    gastype : list of str
+    """
+    return ['Ar']
 
 
 def calc_remainder(simdir):
