@@ -145,7 +145,7 @@ def read_csv(path):
     results : pandas.Series
       data from csv file with the time column as the index
     """
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, comment='#')
     df = df.set_index('time')
     return df.squeeze()  # converts to a Series
 
