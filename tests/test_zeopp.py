@@ -40,6 +40,7 @@ def reference_results():
             ('IRMOF-1.psd_histo', 'psd'),
             ('IRMOF-1.ray_atom', 'raytrace'),
             ('IRMOF-1.strinfo', 'structure_analysis'),
+            ('IRMOF-1.oms', 'oms_count'),
     ):
         with open(os.path.join(REF_DIR, filename), 'r') as fin:
             ref[key] = fin.read()
@@ -117,3 +118,12 @@ def test_structure_analysis(in_temp_dir, reference_results, launchpad):
     result = open(os.path.join('IRMOF-1', 'IRMOF-1.strinfo'), 'r').read()
 
     assert result == reference_results['structure_analysis']
+
+
+@ZEO_PP_SKIP
+def test_oms_count(in_temp_dir, reference_results, launchpad):
+    launchpad(make_zeopp_fw('oms_count'))
+
+    result = open(os.path.join('IRMOF-1', 'IRMOF-1.oms'), 'r').read()
+
+    assert result == reference_results['oms_count']

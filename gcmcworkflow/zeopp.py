@@ -34,7 +34,8 @@ ZEO_PP_COMMANDS = {
     'raytrace': 'network -ha -ray_atom {radius} {radius} 50000 {filename}',
     'vmd_grid': 'network -ha -gridG {filename}',
     'structure_analysis': 'network -ha -strinfo {filename}',
-    'oms_count': 'network -ha -oms {filename}',
+    # oms is very slow with -ha
+    'oms_count': 'network -oms {filename}',
 }
 
 
