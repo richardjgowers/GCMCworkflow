@@ -26,23 +26,35 @@ class PrepareStructure(fw.FiretaskBase):
 
 ZEO_PP_COMMANDS = {
     'pore_diameter': 'network -ha -res {filename}',
+    'channel_identification': 'network -ha -chan {radius} {filename}',
+    'surface_area': 'network -ha -sa {radius} {radius} 2000 {filename}',
+    'accessible_volume': 'network -ha -vol {radius} {radius} 50000 {filename}',
+    'probe_volume': 'network -ha -volpo {radius} {radius} 50000 {filename}',
+    'psd': 'network -ha -psd {radius} {radius} 50000 {filename}',
+    'raytrace': 'network -ha -ray_atom {radius} {radius} 50000 {filename}',
+    'vmd_grid': 'network -ha -gridG {filename}',
+    'structure_analysis': 'network -ha -strinfo {filename}',
+    'oms_count': 'network -ha -oms {filename}',
 }
+
 
 @xs
 class ZeoPP(fw.FiretaskBase):
     # need to pass list of requested calculations
     required_params = ['calculations']
+    optional_params = ['radius']
 
     def run_task(self, fw_spec):
         old_dir = os.getcwd()
         os.chdir(fw_spec['structure_dir'])
 
         fn = glob.glob('*.cif')[0]
+        rad = self.get('radius', 1.2)
 
         try:
             for calc in self['calculations']:
                 p = subprocess.run(
-                    ZEO_PP_COMMANDS[calc].format(filename=fn),
+                    ZEO_PP_COMMANDS[calc].format(filename=fn, radius=rad),
                     check=True, shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 )

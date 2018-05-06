@@ -1,0 +1,3 @@
+@ IRMOF-1.volpo Unitcell_volume: 4309.37   Density: 0.593339   POAV_A^3: 3315.03 POAV_Volume_fraction: 0.76926 POAV_cm^3/g: 1.29649 PONAV_A^3: 0 PONAV_Volume_fraction: 0 PONAV_cm^3/g: 0
+PROBE_OCCUPIABLE_VOL_CALC: filename| density(g/cm3)| probe rad| N points| probe ctr A fract| probe ctr NA fract| A fract| NA fract| narrow fract |ovlp fract.
+PROBE_OCCUPIABLE___RESULT: IRMOF-1.volpo	0.593339	1.88	50000	0.39498	0	0.76926	0	0.03734	0.1934
