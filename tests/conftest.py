@@ -4,6 +4,7 @@ from fireworks.core.rocket_launcher import launch_rocket
 import os
 import pytest
 import shutil
+import yaml
 
 import gcmcworkflow as gcwf
 
@@ -66,7 +67,10 @@ def template_contents():
 @pytest.fixture
 def launchpad():
     """Returns a function that runs a Firework or Workflow"""
-    lp = fw.LaunchPad()
+    if 'LP_FILE' in os.environ:
+        lp = fw.LaunchPad.from_file(os.environ['LP_FILE'])
+    else:
+        lp = fw.LaunchPad()
     lp.reset('', require_password=False)
 
     def do_launch(thingy):
