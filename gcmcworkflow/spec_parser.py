@@ -64,5 +64,7 @@ def read_spec(path):
         output['ncycles'] = int(raw['ncycles'])
     except KeyError:
         output['ncycles'] = None
+    # kinda weird, but sometimes bool sometimes string, so force to string
+    output['grid'] = str(raw.get('grid', False)).lower().startswith('t')
 
     return output
