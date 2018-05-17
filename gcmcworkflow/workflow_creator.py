@@ -3,6 +3,7 @@ import fireworks as fw
 
 from . import utils
 from . import firetasks
+from . import grids
 
 
 def make_workflow(spec, simple=False):
@@ -42,6 +43,8 @@ def make_workflow(spec, simple=False):
         simfmt = utils.guess_format(stuff)
         stuff = utils.escape_template(stuff)
 
+    use_grid = spec.get('grid', False)
+
     init = fw.Firework(
         [firetasks.InitTemplate(contents=stuff, workdir=workdir),
          firetasks.CreatePassport(workdir=workdir)],
@@ -52,11 +55,27 @@ def make_workflow(spec, simple=False):
         name='Template Init',
     )
 
+    if use_grid:
+        gridmake = fw.Firework(
+            [grids.PrepareGridInput(workdir=workdir),
+             firetasks.RunSimulation(fmt='raspa')],
+            parents=[init],
+            spec={
+                '_category': wfname,
+                'template': template,
+            }
+        )
+        init_parent = gridmake
+        grid = [gridmake]
+    else:
+        init_parent = init
+        grid = []
+
     simulation_steps = []  # list of simulation fireworks
     analysis_steps = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
         this_condition, this_condition_analysis = make_sampling_point(
-            parent_fw=init,
+            parent_fw=init_parent,
             temperature=T,
             pressure=P,
             ncycles=ncycles,
@@ -66,6 +85,7 @@ def make_workflow(spec, simple=False):
             template=template,
             workdir=workdir,
             simple=simple,
+            use_grid=use_grid,
         )
         simulation_steps.extend(this_condition)
         analysis_steps.append(this_condition_analysis)
@@ -78,7 +98,7 @@ def make_workflow(spec, simple=False):
     )
 
     wf = fw.Workflow(
-        [init] + simulation_steps + analysis_steps + [iso_create],
+        [init] + grid + simulation_steps + analysis_steps + [iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
@@ -88,7 +108,8 @@ def make_workflow(spec, simple=False):
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
                   fmt, wfname, template, workdir,
-                  previous_simdir=None, previous_result=None, simhash=None):
+                  previous_simdir=None, previous_result=None, simhash=None,
+                  use_grid=False):
     """Make a single Run stage
 
     Parameters
@@ -113,6 +134,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
       if a restart, where the simulation took place
     previous_result : str, optional
       if a restart, csv representation of previous results
+    use_grid : bool, optional
+      whether to use an energy grid
 
     Returns
     -------
@@ -133,7 +156,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
             ncycles=ncycles,
             parallel_id=parallel_id,
             workdir=workdir,
-            previous_simdir=previous_simdir
+            previous_simdir=previous_simdir,
+            use_grid=use_grid,
         )],
         parents=parent_fw,
         spec={
@@ -160,6 +184,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
             workdir=workdir,
             # if this is a restart, pass previous results, else None
             previous_result=previous_result,
+            use_grid=use_grid,
         )],
         spec={
             '_allow_fizzled_parents': True,
@@ -176,7 +201,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         fmt, wfname, template, workdir, simple,
                         simhash=None, previous_results=None,
-                        previous_simdirs=None):
+                        previous_simdirs=None, use_grid=False):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -205,6 +230,8 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       mapping of parallel_id to previous results
     previous_simdirs : dict, optional
       mapping of parallel_id to directory where sim took place
+    use_grid : bool, optional
+      whether to use an energy grid
 
     Returns
     -------
@@ -233,6 +260,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             previous_simdir=previous_simdirs.get(i, None),
             previous_result=previous_results.get(i, None),
             simhash=simhash,
+            use_grid=use_grid,
         )
         runs.append(copy)
         runs.append(run)
@@ -245,6 +273,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             workdir=workdir,
             fmt=fmt,
             simple=simple,
+            use_grid=use_grid,
         )],
         spec={'_category': wfname},
         parents=postprocesses,

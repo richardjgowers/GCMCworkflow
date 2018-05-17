@@ -297,7 +297,7 @@ class PostProcess(fw.FiretaskBase):
     """
     required_params = ['fmt', 'temperature', 'pressure', 'parallel_id',
                        'workdir']
-    optional_params = ['previous_result']
+    optional_params = ['previous_result', 'use_grid']
 
     @staticmethod
     def check_exit(fmt, simpath):
@@ -399,6 +399,7 @@ class PostProcess(fw.FiretaskBase):
             previous_simdir=previous_simdir,
             previous_result=current_result.to_csv(),
             simhash=simhash,
+            use_grid=self.get('use_grid', False),
         )
 
         return [copy_fw, run_fw, analyse_fw]
@@ -468,7 +469,7 @@ class Analyse(fw.FiretaskBase):
         issue more sampling
     """
     required_params = ['temperature', 'pressure', 'workdir']
-    optional_params = ['simple']
+    optional_params = ['simple', 'use_grid']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
                          wfname, template, simhash):
@@ -512,6 +513,7 @@ class Analyse(fw.FiretaskBase):
             previous_results=previous_results,
             previous_simdirs=previous_simdirs,
             simhash=simhash,
+            use_grid=self.get('use_grid', False),
         )
 
         return fw.Workflow(runs + [pps])

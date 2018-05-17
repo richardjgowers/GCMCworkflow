@@ -67,3 +67,49 @@ def test_workflow_identity_and_dependency(dict_spec):
                      if any(isinstance(t, fw_type) for t in fw.tasks)]
         assert len(this_type) == n_expected
         assert all(len(fw.parents) == n_parents for fw in this_type)
+
+
+@pytest.fixture
+def grid_spec():
+    return dict(
+        template={'simulation.input': 'wow\nmy sim\n'},
+        workdir='',
+        name='GridSpecTest',
+        pressures=[10.],
+        temperatures=[10.],
+        ncycles=100,
+        nparallel=1,
+        grid=True,
+    )
+
+def test_workflow_with_grid(grid_spec):
+    wf = gcwf.workflow_creator.make_workflow(grid_spec)
+    # Init, Grid, Copy, Run, PP, Analyse, Isotherm
+    assert len(wf.fws) == 7
+
+    grid_fw = [fw for fw in wf.fws
+               if any(isinstance(t, gcwf.grids.PrepareGridInput)
+                      for t in fw.tasks)]
+    assert len(grid_fw) == 1
+    
+
+def test_postprocess_with_grid(grid_spec):
+    wf = gcwf.workflow_creator.make_workflow(grid_spec)
+
+    pp_fw = [fw for fw in wf.fws
+             if any(isinstance(t, gcwf.firetasks.PostProcess)
+                    for t in fw.tasks)][0]
+
+    assert pp_fw.tasks[0]['use_grid']
+
+
+def test_analyse_with_grid(grid_spec):
+    wf = gcwf.workflow_creator.make_workflow(grid_spec)
+
+    ana_fw = [fw for fw in wf.fws
+             if any(isinstance(t, gcwf.firetasks.Analyse)
+                    for t in fw.tasks)][0]
+
+    assert ana_fw.tasks[0]['use_grid']
+
+
