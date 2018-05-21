@@ -79,7 +79,7 @@ def grid_spec():
         temperatures=[10.],
         ncycles=100,
         nparallel=1,
-        grid=True,
+        use_grid=True,
     )
 
 def test_workflow_with_grid(grid_spec):

@@ -43,7 +43,7 @@ def make_workflow(spec, simple=False):
         simfmt = utils.guess_format(stuff)
         stuff = utils.escape_template(stuff)
 
-    use_grid = spec.get('grid', False)
+    use_grid = spec.get('use_grid', False)
 
     init = fw.Firework(
         [firetasks.InitTemplate(contents=stuff, workdir=workdir),
