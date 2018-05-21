@@ -50,6 +50,13 @@ class PrepareGridInput(fw.FiretaskBase):
             fout.write('NumberOfGrids {}\n'.format(len(gastypes)))
             fout.write('GridTypes     {}\n'.format(' '.join(gastypes)))
 
+        return fw.FWAction(
+            update_spec={
+                'simtree': os.path.abspath(newdir),
+                'template': fw_spec['template'],
+                'simhash': fw_spec['simhash'],
+        })
+
 
 @xs
 class DestroyGrid(fw.FiretaskBase):
