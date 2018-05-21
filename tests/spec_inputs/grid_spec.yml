@@ -2,4 +2,4 @@ pressures: [10.0, 20.0, 30.0]
 temperatures: [205, 210, 215]
 template: here/
 ncycles: 1000000
-grid: true
+use_grid: true

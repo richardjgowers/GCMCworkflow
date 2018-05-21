@@ -10,12 +10,12 @@ def SIMPLE_SPEC():
         'temperatures': [205.0, 210.0, 215.0],
         'template': os.path.join(os.getcwd(), 'here'),
         'ncycles': 1000000,
-        'grid': False,
+        'use_grid': False,
     }
 
 @pytest.fixture
 def GRID_SPEC(SIMPLE_SPEC):
-    SIMPLE_SPEC['grid'] = True
+    SIMPLE_SPEC['use_grid'] = True
     return SIMPLE_SPEC
 
 
