@@ -63,7 +63,7 @@ def make_workflow(spec, simple=False):
             spec={
                 '_category': wfname,
                 'template': template,
-            }
+            },
             name='Grid Make',
         )
         init_parent = gridmake
