@@ -18,7 +18,7 @@ class PrepareGridInput(fw.FiretaskBase):
         newdir = os.path.join(self['workdir'], 'gridmake')
         shutil.copytree(fw_spec['template'], newdir)
 
-        gastypes = raspatools.determine_types(newdir)
+        gastypes = raspatools.determine_gastypes(newdir)
 
         # rewrite simulation.input completely
         # which keys in input file to keep from original

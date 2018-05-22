@@ -103,7 +103,7 @@ def set_restart(simtree):
             newfile.write(line)
 
 
-def determine_types(simdir):
+def determine_gastypes(simdir):
     """Determine all atom types in gas species
 
     Parameters
