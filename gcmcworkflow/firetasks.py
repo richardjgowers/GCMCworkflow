@@ -84,6 +84,9 @@ class InitTemplate(fw.FiretaskBase):
     optional_params = ['contents', 'workdir']
 
     def run_task(self, fw_spec):
+        if self.get('workdir', ''):
+            os.makedirs(self.get('workdir'), exist_ok=True)
+
         if self.get('contents', None) is not None:
             # where the template can be found
             target = utils.dump_directory(
