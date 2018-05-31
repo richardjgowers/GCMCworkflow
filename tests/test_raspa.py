@@ -47,3 +47,11 @@ def test_parser(successful_raspa):
 
     # regression test
     assert res.mean() == pytest.approx(3.0010234057, abs=0.02)
+
+
+def test_determine_gastypes(sample_input):
+    types = gcwf.raspatools.determine_gastypes(os.path.join(sample_input, 'template'))
+
+    assert len(types) == 2
+    assert 'O_co2' in types
+    assert 'C_co2' in types

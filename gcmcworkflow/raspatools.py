@@ -115,7 +115,12 @@ def determine_gastypes(simdir):
     -------
     gastype : list of str
     """
-    return ['Ar']
+    with open(os.path.join(simdir, 'pseudo_atoms.def'), 'r') as f:
+        f.readline()
+        ntypes = int(f.readline().strip())
+        f.readline()
+        types = [f.readline().split()[0] for _ in range(ntypes)]
+    return [t for t in types if not t == 'UNIT']
 
 
 def parse_ncycles(simdir):
