@@ -118,12 +118,8 @@ def determine_gastypes(simdir):
     return ['Ar']
 
 
-def calc_remainder(simdir):
-    """Calculate the number of additional cycles required for this simulation"""
-    results = parse_results(simdir)
-
-    last_index = results.index.max()
-
+def parse_ncycles(simdir):
+    """Grab ncycles from simulation.input in simdir"""
     with open(os.path.join(simdir, 'simulation.input'), 'r') as f:
         for line in f:
             mat = re.search(r'\s*(?:NumberOfCycles)\s*(\d+)', line)
@@ -133,6 +129,15 @@ def calc_remainder(simdir):
         else:
             raise ValueError("Couldn't deduce NCycles")
 
-    nreq = int(mat.groups()[0])
+    return int(mat.groups()[0])
+
+
+def calc_remainder(simdir):
+    """Calculate the number of additional cycles required for this simulation"""
+    results = parse_results(simdir)
+
+    nreq = parse_ncycles(simdir)
+
+    last_index = results.index.max()
 
     return nreq - last_index
