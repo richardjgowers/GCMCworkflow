@@ -55,6 +55,10 @@ import os
 import shutil
 import subprocess
 import tarfile
+try:
+    import datreant as dtr
+except:
+    dtr = False
 
 # Import format specific tools
 from . import NotEquilibratedError
@@ -201,6 +205,19 @@ class CopyTemplate(fw.FiretaskBase):
 
         # copy in the template to this newdir
         shutil.copytree(template, newdir)
+
+        if dtr:
+            t = dtr.Treant(
+                newdir,
+                categories={
+                    'simhash': simhash,
+                    'T': T,
+                    'P': P,
+                    'generation': gen_id,
+                    'parallel_id': p_id,
+                },
+                tags=['sim'],
+            )
 
         return newdir
 
