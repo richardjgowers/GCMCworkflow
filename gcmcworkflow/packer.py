@@ -12,6 +12,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import numpy as np
 
 from . import firetasks
+from . import grids
 from . import utils
 from .workflow_creator import make_sampling_point
 
@@ -172,11 +173,22 @@ def make_capacity_measurement(spec):
         name='Template Init',
     )
 
+    gridmake = fw.Firework(
+        [grids.PrepareGridInput(workdir=workdir),
+         firetasks.RunSimulation(fmt='raspa')],
+        parents=[init],
+        spec={
+            '_category': wfname,
+            'template': template,
+        },
+        name='Grid Make',
+    )
+
     simulation_steps = []  # list of simulation fireworks
     analysis_steps = []  # list of post processing fireworks
     for T, P in itertools.product(temperatures, pressures):
         this_condition, this_condition_analysis = make_sampling_point(
-            parent_fw=init,
+            parent_fw=gridmake,
             temperature=T,
             pressure=P,
             ncycles=ncycles,
@@ -209,7 +221,7 @@ def make_capacity_measurement(spec):
     )
 
     wf = fw.Workflow(
-        [init] + simulation_steps + analysis_steps + [capacity, iso_create],
+        [init, gridmake] + simulation_steps + analysis_steps + [capacity, iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
