@@ -20,6 +20,7 @@ Usage:
   gcmcworkflow submit <wf_specfile> [-l <lp_spec>] [--simple]
   gcmcworkflow list [-l <lp_spec>]
   gcmcworkflow check <wf_name> [-l <lp_spec>]
+  gcmcworkflow run_tests
 
 Options:
   -h --help
@@ -80,3 +81,5 @@ if __name__ == '__main__':
             args['<wf_name>'], lpspec=args['-l'])
 
         print(build_table(stat))
+    elif args['run_tests']:
+        gcwf.run_tests()
