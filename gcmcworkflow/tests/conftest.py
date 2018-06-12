@@ -60,8 +60,7 @@ def short_raspa(tmpdir):
 def template_contents():
     # all the files in sample_input/template
     return ('CO2.def', 'force_field.def', 'framework.def',
-            'IRMOF-1.cif', 'pseudo_atoms.def', 'simulation.input',
-            'run.sh')
+            'IRMOF-1.cif', 'pseudo_atoms.def', 'simulation.input')
 
 
 @pytest.fixture
