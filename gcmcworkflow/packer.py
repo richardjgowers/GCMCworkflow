@@ -15,6 +15,7 @@ from . import firetasks
 from . import grids
 from . import utils
 from .workflow_creator import (
+    process_template,
     make_sampling_point,
 )
 
@@ -151,19 +152,7 @@ def make_capacity_measurement(spec):
     workdir = spec['workdir']
     wfname = spec['name']
 
-    if not isinstance(template, dict):
-        # Passed path to template
-        # if passed path to template, slurp it up
-
-        # old method of slurping up directory
-        stuff = None
-        slurped = utils.slurp_directory(template)
-        simfmt = utils.guess_format(slurped)
-    else:
-        # Else passed dict of stuff
-        stuff = template
-        simfmt = utils.guess_format(stuff)
-        stuff = utils.escape_template(stuff)
+    stuff, simfmt = process_template(template)
 
     init = fw.Firework(
         [firetasks.InitTemplate(contents=stuff, workdir=workdir),
