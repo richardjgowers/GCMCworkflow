@@ -1,0 +1,1 @@
+include gcmcworkflow/tests/*.py

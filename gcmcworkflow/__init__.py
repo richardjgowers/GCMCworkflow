@@ -29,3 +29,5 @@ from . import make_genetics
 from .poreblazer import PoreblazerTask
 
 from . import launchpad_utils
+
+from .tests import run_tests
