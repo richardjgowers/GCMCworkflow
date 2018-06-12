@@ -16,6 +16,7 @@ from . import grids
 from . import utils
 from .workflow_creator import (
     process_template,
+    make_init_stage,
     make_sampling_point,
 )
 
@@ -154,15 +155,7 @@ def make_capacity_measurement(spec):
 
     stuff, simfmt = process_template(template)
 
-    init = fw.Firework(
-        [firetasks.InitTemplate(contents=stuff, workdir=workdir),
-         firetasks.CreatePassport(workdir=workdir)],
-        spec={
-            '_category': wfname,
-            'template': template,
-        },
-        name='Template Init',
-    )
+    init = make_init_stage(stuff, workdir, wfname, template)
 
     gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
 

@@ -56,14 +56,11 @@ def make_workflow(spec, simple=False):
 
     stuff, simfmt = process_template(template)
 
-    init = fw.Firework(
-        [firetasks.InitTemplate(contents=stuff, workdir=workdir),
-         firetasks.CreatePassport(workdir=workdir)],
-        spec={
-            '_category': wfname,
-            'template': template,
-        },
-        name='Template Init',
+    init = make_init_stage(
+        contents=stuff,
+        workdir=workdir,
+        wfname=wfname,
+        template=template,
     )
 
     if use_grid:
@@ -107,6 +104,35 @@ def make_workflow(spec, simple=False):
     )
 
     return wf
+
+
+def make_init_stage(contents, workdir, wfname, template):
+    """Make initialisation stage of Workflow
+
+    Parameters
+    ----------
+    contents : dict or None
+      template contents
+    workdir : str
+      path to run simulations in
+    wfname : str
+      unique name for this Workflow
+    template : str or dict
+
+    Returns
+    -------
+    init : fw.Firework
+      handles template creation and passport
+    """
+    return fw.Firework(
+        [firetasks.InitTemplate(contents=contents, workdir=workdir),
+         firetasks.CreatePassport(workdir=workdir)],
+        spec={
+            '_category': wfname,
+            'template': template,
+        },
+        name='Template Init',
+    )
 
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
