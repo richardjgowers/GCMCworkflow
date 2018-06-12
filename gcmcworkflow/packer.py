@@ -14,7 +14,9 @@ import numpy as np
 from . import firetasks
 from . import grids
 from . import utils
-from .workflow_creator import make_sampling_point
+from .workflow_creator import (
+    make_sampling_point,
+)
 
 
 def kinda_equal(result_a, result_b):
@@ -173,16 +175,7 @@ def make_capacity_measurement(spec):
         name='Template Init',
     )
 
-    gridmake = fw.Firework(
-        [grids.PrepareGridInput(workdir=workdir),
-         firetasks.RunSimulation(fmt='raspa')],
-        parents=[init],
-        spec={
-            '_category': wfname,
-            'template': template,
-        },
-        name='Grid Make',
-    )
+    gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
 
     simulation_steps = []  # list of simulation fireworks
     analysis_steps = []  # list of post processing fireworks

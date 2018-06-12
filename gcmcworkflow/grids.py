@@ -6,6 +6,7 @@ from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import os
 import shutil
 
+from . import firetasks
 from . import raspatools
 
 
@@ -65,3 +66,32 @@ class DestroyGrid(fw.FiretaskBase):
         # figure out where Raspa is installed
         # find appropriate grid(s)
         pass
+
+def make_grid_firework(workdir, parents, wfname, template):
+    """Create Firework which prepares grid
+
+    Parameters
+    ----------
+    workdir : str
+      where to run the grid making
+    parents : list
+      references to previous Fireworks in Workflow
+    wfname : str
+      unique name for Workflow
+    template : str or dict
+      either path to template or dict of contents
+
+    Returns
+    -------
+    gridmake : fw.Firework
+    """
+    return fw.Firework(
+        [PrepareGridInput(workdir=workdir),
+         firetasks.RunSimulation(fmt='raspa')],
+        parents=parents,
+        spec={
+            '_category': wfname,
+            'template': template,
+        },
+        name='Grid Make',
+    )

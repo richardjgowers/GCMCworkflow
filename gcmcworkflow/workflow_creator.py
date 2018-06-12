@@ -56,16 +56,7 @@ def make_workflow(spec, simple=False):
     )
 
     if use_grid:
-        gridmake = fw.Firework(
-            [grids.PrepareGridInput(workdir=workdir),
-             firetasks.RunSimulation(fmt='raspa')],
-            parents=[init],
-            spec={
-                '_category': wfname,
-                'template': template,
-            },
-            name='Grid Make',
-        )
+        gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
         init_parent = gridmake
         grid = [gridmake]
     else:
