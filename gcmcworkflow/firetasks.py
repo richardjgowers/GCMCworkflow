@@ -545,7 +545,7 @@ class Analyse(fw.FiretaskBase):
         simple = self.get('simple', True)
 
         g = 0.0
-        g_req = 10.0
+        g_req = 5.0
         means = []
         stds = []
         eqs = {}
