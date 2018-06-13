@@ -173,6 +173,7 @@ def make_capacity_measurement(spec):
             template=template,
             workdir=workdir,
             simple=False,
+            use_grid=True,
         )
         simulation_steps.extend(this_condition)
         analysis_steps.append(this_condition_analysis)
