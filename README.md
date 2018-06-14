@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/richardjgowers/GCMCworkflow.svg?branch=master)](https://travis-ci.org/richardjgowers/GCMCworkflow)
 [![codecov](https://codecov.io/gh/richardjgowers/GCMCworkflow/branch/master/graph/badge.svg)](https://codecov.io/gh/richardjgowers/GCMCworkflow)
+[![DOI](https://zenodo.org/badge/104999008.svg)](https://zenodo.org/badge/latestdoi/104999008)
 
 GCMCworkflow is a Python package for performing GCMC sampling of gas adsorption using [Fireworks](https://github.com/materialsproject/fireworks).
 
