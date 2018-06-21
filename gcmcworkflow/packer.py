@@ -54,7 +54,7 @@ class HydraspaCreate(fw.FiretaskBase):
     optional_params = ['workdir']
 
     def run_task(self, fw_spec):
-        target = os.path.join(self.get('workdir', ''), self['structure_name'])
+        target = self.get('workdir', '')
 
         # create template using hydraspa
         hrsp.cli_create(
@@ -182,6 +182,8 @@ def make_capacity_measurement(struc, workdir):
     wfname = struc + '_capacity'
     template = ''
     simfmt = 'raspa'
+    # work in directory with name of structure
+    workdir = os.path.join(workdir, struc)
 
     init = fw.Firework(
         [HydraspaCreate(structure_name=struc, workdir=workdir),
@@ -191,10 +193,6 @@ def make_capacity_measurement(struc, workdir):
         },
         name='Template Init',
     )
-
-    # work in directory with name of structure
-    # don't change workdir earlier as we want to do previous task in higher dir
-    workdir = os.path.join(workdir, struc)
 
     gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
 
