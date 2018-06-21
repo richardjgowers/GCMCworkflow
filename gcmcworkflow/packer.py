@@ -74,8 +74,7 @@ class CapacityDecider(fw.FiretaskBase):
     required_params = ['fmt', 'workdir']
     optional_params = ['previous_results']
 
-    @staticmethod
-    def make_detour(previous, wfname, fmt, template, workdir, simhash):
+    def make_detour(self, previous, wfname, fmt, template, workdir, simhash):
         # make more simulations at higher pressures
         temperature = max(r[0] for r in previous)
         max_pressure = max(r[1] for r in previous)
@@ -160,7 +159,7 @@ class CapacityDecider(fw.FiretaskBase):
             )
 
 
-def make_capacity_measurement(struc, workdir):
+def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
     """Create an entire Isotherm creation Workflow
 
     Parameters
@@ -175,8 +174,14 @@ def make_capacity_measurement(struc, workdir):
     workflow : fw.Workflow
       Workflow object ready to submit to LaunchPad
     """
-    temperatures = [78.0]
-    pressures = [10000000, 20000000, 40000000]
+    if temperature is None:
+        temperatures = [78.0]
+    else:
+        temperatures = [temperature]
+
+    if pressures is None:
+        pressures = [10000000, 20000000, 40000000]
+
     nparallel = 1
     ncycles = 10000
 
