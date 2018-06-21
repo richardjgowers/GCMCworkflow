@@ -9,6 +9,8 @@ CheckFlat
 import itertools
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
+import hydraspa as hrsp
+import os
 import numpy as np
 
 from . import firetasks
@@ -40,6 +42,31 @@ def kinda_equal(result_a, result_b):
 
     return ((b_low < a_high < b_high) or
             (a_low < b_high < a_high))
+
+
+@xs
+class HydraspaCreate(fw.FiretaskBase):
+    """Creates simulation template from Hydraspa
+
+    Replaces InitTemplate task
+    """
+    required_params = ['structure_name']
+    optional_params = ['workdir']
+
+    def run_task(self, fw_spec):
+        target = os.path.join(self.get('workdir', ''), self['structure_name'])
+
+        # create template using hydraspa
+        hrsp.cli_create(
+            structure=self['structure_name'],
+            gas='Ar',
+            forcefield='UFF',
+            outdir=target,
+        )
+
+        return fw.FWAction(
+            update_spec={'template': os.path.join(target, 'template')},
+        )
 
 
 @xs
@@ -132,30 +159,42 @@ class CapacityDecider(fw.FiretaskBase):
             )
 
 
-def make_capacity_measurement(spec):
+def make_capacity_measurement(struc, workdir):
     """Create an entire Isotherm creation Workflow
 
     Parameters
     ----------
-    spec : dict
-      has all the information for workflow
+    struc : str
+      name of structure to build capacity measurement for
+    workdir : str
+      where to run simulation
 
     Returns
     -------
     workflow : fw.Workflow
       Workflow object ready to submit to LaunchPad
     """
-    temperatures = spec['temperatures']
-    pressures = spec['pressures']
-    nparallel = spec['nparallel']
-    ncycles = spec['ncycles']
-    template = spec['template']
-    workdir = spec['workdir']
-    wfname = spec['name']
+    temperatures = [78.0]
+    pressures = [10000000, 20000000, 40000000]
+    nparallel = 1
+    ncycles = 10000
 
-    stuff, simfmt = process_template(template)
+    wfname = struc + '_capacity'
+    template = ''
+    simfmt = 'raspa'
 
-    init = make_init_stage(stuff, workdir, wfname, template)
+    init = fw.Firework(
+        [HydraspaCreate(structure_name=struc, workdir=workdir),
+         firetasks.CreatePassport(workdir=workdir)],
+        spec={
+            '_category': wfname,
+        },
+        name='Template Init',
+    )
+
+    # work in directory with name of structure
+    # don't change workdir earlier as we want to do previous task in higher dir
+    workdir = os.path.join(workdir, struc)
 
     gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
 
