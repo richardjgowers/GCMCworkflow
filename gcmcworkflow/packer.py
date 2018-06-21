@@ -84,7 +84,7 @@ class CapacityDecider(fw.FiretaskBase):
         new_sims = []
         new_pps = []
 
-        for P in new_presures:
+        for P in new_pressures:
             runs, pps = make_sampling_point(
                 parent_fw=None,
                 temperature=temperature,
@@ -97,6 +97,7 @@ class CapacityDecider(fw.FiretaskBase):
                 workdir=workdir,
                 simple=False,
                 simhash=simhash,
+                use_grid=True,
             )
             new_sims.extend(runs)
             new_pps.append(pps)
