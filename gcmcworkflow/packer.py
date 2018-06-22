@@ -97,6 +97,7 @@ class CapacityDecider(fw.FiretaskBase):
                 simple=False,
                 simhash=simhash,
                 use_grid=True,
+                g_req=2.0,
             )
             new_sims.extend(runs)
             new_pps.append(pps)
