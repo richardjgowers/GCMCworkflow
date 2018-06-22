@@ -71,7 +71,7 @@ class HydraspaCreate(fw.FiretaskBase):
 
 @xs
 class CapacityDecider(fw.FiretaskBase):
-    required_params = ['fmt', 'workdir']
+    required_params = ['fmt', 'workdir', 'iteration']
     optional_params = ['previous_results']
 
     def make_detour(self, previous, wfname, fmt, template, workdir, simhash):
@@ -107,6 +107,7 @@ class CapacityDecider(fw.FiretaskBase):
                 fmt=fmt,
                 workdir=workdir,
                 previous_results=previous,
+                iteration=self['iteration'] + 1,
             )],
             parents=pps,
             spec={
@@ -141,7 +142,7 @@ class CapacityDecider(fw.FiretaskBase):
 
         finished = self.decide_if_flat(fw_spec['results_array'])
 
-        if not finished:
+        if self['iteration'] < 3 and not finished:
             # issue detour with more pressures
             return fw.FWAction(
                 detours=self.make_detour(
@@ -224,7 +225,7 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
         analysis_steps.append(this_condition_analysis)
 
     capacity = fw.Firework(
-        [CapacityDecider(fmt=simfmt, workdir=workdir)],
+        [CapacityDecider(fmt=simfmt, workdir=workdir, iteration=0)],
         # pass init to give template in spec
         parents=[init] + analysis_steps,
         spec={
