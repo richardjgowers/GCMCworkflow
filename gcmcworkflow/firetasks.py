@@ -489,7 +489,7 @@ class Analyse(fw.FiretaskBase):
         issue more sampling
     """
     required_params = ['temperature', 'pressure', 'workdir']
-    optional_params = ['simple', 'use_grid']
+    optional_params = ['simple', 'use_grid', 'g_req']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
                          wfname, template, simhash):
@@ -534,6 +534,7 @@ class Analyse(fw.FiretaskBase):
             previous_simdirs=previous_simdirs,
             simhash=simhash,
             use_grid=self.get('use_grid', False),
+            g_req=self.get('g_req', None)
         )
 
         return fw.Workflow(runs + [pps])
@@ -545,7 +546,9 @@ class Analyse(fw.FiretaskBase):
         simple = self.get('simple', True)
 
         g = 0.0
-        g_req = 5.0
+        g_req = self.get('g_req', None)
+        if g_req is None:
+            g_req = 5.0
         means = []
         stds = []
         eqs = {}

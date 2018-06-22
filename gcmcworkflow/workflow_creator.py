@@ -230,7 +230,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         fmt, wfname, template, workdir, simple,
                         simhash=None, previous_results=None,
-                        previous_simdirs=None, use_grid=False):
+                        previous_simdirs=None, use_grid=False, g_req=None):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -261,6 +261,8 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       mapping of parallel_id to directory where sim took place
     use_grid : bool, optional
       whether to use an energy grid
+    g_req : float, optional
+      number of decorrelations to sample
 
     Returns
     -------
@@ -303,6 +305,7 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             fmt=fmt,
             simple=simple,
             use_grid=use_grid,
+            g_req=g_req,
         )],
         spec={'_category': wfname},
         parents=postprocesses,
