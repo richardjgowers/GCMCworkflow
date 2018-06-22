@@ -72,3 +72,18 @@ def test_gen_sim_path():
         'hash123', 123.0, 200.0, 1, 2)
 
     assert pth == 'simhash123_T123.0_P200.0_gen1_v2'
+
+
+@pytest.mark.parametrize('dirname', [
+    'sim1234567_T12.0_P24.0_gen5_v0',
+    'sim1234567_T12_P24.0_gen5_v0',
+    'sim1234567_T12.0_P24_gen5_v0',
+])
+def test_parse_sim_path(dirname):
+    res = gcwf.utils.parse_sim_path(dirname)
+
+    assert res.simhash == '1234567'
+    assert res.T == 12.0
+    assert res.P == 24.0
+    assert res.gen_id == 5
+    assert res.parallel_id == 0
