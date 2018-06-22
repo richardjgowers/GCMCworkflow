@@ -218,6 +218,7 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
             workdir=workdir,
             simple=False,
             use_grid=True,
+            g_req=2.0,
         )
         simulation_steps.extend(this_condition)
         analysis_steps.append(this_condition_analysis)
