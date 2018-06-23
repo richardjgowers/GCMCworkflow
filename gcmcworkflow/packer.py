@@ -78,7 +78,7 @@ class CapacityDecider(fw.FiretaskBase):
         # make more simulations at higher pressures
         temperature = max(r[0] for r in previous)
         max_pressure = max(r[1] for r in previous)
-        new_pressures = [max_pressure * 2, max_pressure * 4, max_pressure * 8]
+        new_pressures = [max_pressure * 2]
 
         new_sims = []
         new_pps = []
@@ -141,7 +141,7 @@ class CapacityDecider(fw.FiretaskBase):
         total_results = (fw_spec['results_array'] +
                          self.get('previous_results', []))
 
-        finished = self.decide_if_flat(fw_spec['results_array'])
+        finished = self.decide_if_flat(total_results[-2:])
 
         if self['iteration'] < 3 and not finished:
             # issue detour with more pressures
@@ -183,7 +183,7 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
         temperatures = [temperature]
 
     if pressures is None:
-        pressures = [10000000, 20000000, 40000000]
+        pressures = [20000000, 40000000]
 
     nparallel = 1
     ncycles = 10000
