@@ -109,7 +109,7 @@ class CapacityDecider(fw.FiretaskBase):
                 previous_results=previous,
                 iteration=self['iteration'] + 1,
             )],
-            parents=pps,
+            parents=new_pps,
             spec={
                 '_category': wfname,
                 'template': template,
