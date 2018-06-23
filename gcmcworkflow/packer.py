@@ -115,6 +115,7 @@ class CapacityDecider(fw.FiretaskBase):
                 'template': template,
                 'simhash': simhash,
             },
+            name='Capacity decider',
         )
 
         return fw.Workflow(new_sims + new_pps + [new_me])
