@@ -53,6 +53,7 @@ def make_workflow(spec, simple=False):
     workdir = spec['workdir']
     wfname = spec['name']
     use_grid = spec.get('use_grid', False)
+    g_req = spec.get('g_req', None)
 
     stuff, simfmt = process_template(template)
 
@@ -86,6 +87,7 @@ def make_workflow(spec, simple=False):
             workdir=workdir,
             simple=simple,
             use_grid=use_grid,
+            g_req=g_req,
         )
         simulation_steps.extend(this_condition)
         analysis_steps.append(this_condition_analysis)
