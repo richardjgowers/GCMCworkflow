@@ -57,12 +57,19 @@ def check_flat(sig):
 
     p_value = result[1]
 
+    # if signal is perfectly flat, we get nan result, so this is equilibrated too
     # 5% significance level
-    return p_value < 0.05
+    return np.isnan(p_value) or (p_value < 0.05)
 
 
 def find_eq(signal):
     """Given a timeseries, figure out where it became equilibrated
+
+    First tries to approximate where signal becomes level based on isotonic
+    regression and approximations of standard deviation.
+
+    Then checks if the portion identified passes an ADFuller stationary
+    test.
 
     Parameters
     ----------
@@ -77,18 +84,22 @@ def find_eq(signal):
     Raises
     ------
     NotEquilibratedError
-      if the back half of the signal has significant drift
+      if the signal has significant drift
     """
-    # Grab back half of the signal and check that it is flat
+    # Grab back half of the signal
     back = signal.tail(len(signal) // 2)
-    if not check_flat(back):
-        raise NotEquilibratedError
 
     ir = isotonic.IsotonicRegression()
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
                        index=signal.index)
     # find first point that we hit two "wiggles" below the assumed mean
     eq = ir_fit[ir_fit >= (back.mean() - 2 * back.std())].index[0]
+
+    # check if eq onwards is flat
+    # rather than checking only tail, this gives the maximum info to ADF test
+    # also checks entire signal we will later deal with
+    if not check_flat(signal.loc[eq:]):
+        raise NotEquilibratedError
 
     return eq
 
