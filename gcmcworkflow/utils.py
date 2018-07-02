@@ -41,7 +41,7 @@ def gen_name(T, P, idx):
 
 
 # little namespace for holding parsed simpaths
-SimPath = namedtuple('SimPath', 'simhash,T,P,gen_id,parallel_id')
+SimPath = namedtuple('SimPath', 'path,simhash,T,P,gen_id,parallel_id')
 
 SIM_PATH_PATTERN = re.compile(
     r'sim(.{7})?_T(\d+\.?\d*)_P(\d+\.?\d*)_gen(\d+)_v(\d+)')
@@ -81,7 +81,7 @@ def parse_sim_path(path):
     if simhash is None:
         simhash = ''
 
-    return SimPath(simhash, float(T), float(P), int(gen), int(par))
+    return SimPath(path, simhash, float(T), float(P), int(gen), int(par))
 
 
 def find_last_generation(workdir, simhash, T, P, p_id):
