@@ -64,6 +64,11 @@ def read_spec(path):
         output['ncycles'] = int(raw['ncycles'])
     except KeyError:
         output['ncycles'] = None
+    try:
+        output['max_iterations'] = int(raw['max_iterations'])
+    except KeyError:
+        pass
+
     # kinda weird, but sometimes bool sometimes string, so force to string
     output['use_grid'] = str(raw.get('use_grid', False)).lower().startswith('t')
 

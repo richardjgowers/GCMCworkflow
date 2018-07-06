@@ -54,6 +54,7 @@ def make_workflow(spec, simple=False):
     wfname = spec['name']
     use_grid = spec.get('use_grid', False)
     g_req = spec.get('g_req', None)
+    max_iters = spec.get('max_iterations', None)
 
     stuff, simfmt = process_template(template)
 
@@ -88,6 +89,7 @@ def make_workflow(spec, simple=False):
             simple=simple,
             use_grid=use_grid,
             g_req=g_req,
+            max_iterations=max_iters,
         )
         simulation_steps.extend(this_condition)
         analysis_steps.append(this_condition_analysis)
@@ -232,7 +234,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         fmt, wfname, template, workdir, simple,
                         simhash=None, previous_results=None,
-                        previous_simdirs=None, use_grid=False, g_req=None):
+                        previous_simdirs=None, use_grid=False, g_req=None,
+                        iteration=None, max_iterations=None):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -265,6 +268,10 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       whether to use an energy grid
     g_req : float, optional
       number of decorrelations to sample
+    iteration : int, optional
+      iteration number for this sampling, defaults to 0
+    max_iterations : int, optional
+      maximum number of iterations to allow, defaults to infinite
 
     Returns
     -------
@@ -278,6 +285,9 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
 
     runs = []
     postprocesses = []
+
+    if iteration is None:
+        iteration = 0
 
     for i in range(nparallel):
         copy, run, postprocess = make_runstage(
@@ -308,6 +318,8 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             simple=simple,
             use_grid=use_grid,
             g_req=g_req,
+            iteration=iteration,
+            max_iterations=max_iterations,
         )],
         spec={'_category': wfname},
         parents=postprocesses,

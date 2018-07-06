@@ -488,8 +488,8 @@ class Analyse(fw.FiretaskBase):
       else:
         issue more sampling
     """
-    required_params = ['temperature', 'pressure', 'workdir']
-    optional_params = ['simple', 'use_grid', 'g_req']
+    required_params = ['temperature', 'pressure', 'workdir', 'iteration']
+    optional_params = ['simple', 'use_grid', 'g_req', 'max_iterations']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
                          wfname, template, simhash):
@@ -534,7 +534,9 @@ class Analyse(fw.FiretaskBase):
             previous_simdirs=previous_simdirs,
             simhash=simhash,
             use_grid=self.get('use_grid', False),
-            g_req=self.get('g_req', None)
+            g_req=self.get('g_req', None),
+            iteration=self['iteration'] + 1,
+            max_iterations=self.get('max_iterations', None),
         )
 
         return fw.Workflow(runs + [pps])
@@ -576,13 +578,23 @@ class Analyse(fw.FiretaskBase):
         else:
             finished = False
 
-        if finished:
+        # Check if we've reached max iterations
+        if not finished and (self['iteration'] + 1 >= self.get('max_iterations', np.inf)):
+            timeout = True
+            mean = None
+            std = None
+            g = None
+        else:
+            timeout = False
+
+        if finished or timeout:
             return fw.FWAction(
                 stored_data={
                     'result': (mean, std),
                     'equilibrated': equilibrated,
                     'g': g,
                     'finished': finished,
+                    'timed_out': timeout,
                 },
                 mod_spec=[{
                     # push the results of this condition to the Create task
@@ -609,6 +621,7 @@ class Analyse(fw.FiretaskBase):
                     'equilibrated': equilibrated,
                     'g': g,
                     'finished': finished,
+                    'timed_out': timeout,
                 },
                 detours=self.prepare_resample(
                     previous_simdirs={p_id: path
