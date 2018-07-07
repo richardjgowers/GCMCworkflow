@@ -35,7 +35,11 @@ def read_spec(path):
     # convert all fields to correct types
     # if not present, replace with ``None``
     output = {}
-    output['template'] = os.path.abspath(raw['template'])
+    if raw['template'].startswith('Hydraspa('):
+        # special case for Hydraspa template creation
+        output['template'] = raw['template']
+    else:
+        output['template'] = os.path.abspath(raw['template'])
     try:
         output['name'] = raw['name']
     except KeyError:

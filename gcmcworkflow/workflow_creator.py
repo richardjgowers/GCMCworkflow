@@ -4,30 +4,7 @@ import fireworks as fw
 from . import utils
 from . import firetasks
 from . import grids
-
-
-def process_template(template):
-    """Figure out if passed dict style or string style template
-
-    Returns
-    -------
-    stuff, simfmt
-    """
-    if not isinstance(template, dict):
-        # Passed path to template
-        # if passed path to template, slurp it up
-
-        # old method of slurping up directory
-        stuff = None
-        slurped = utils.slurp_directory(template)
-        simfmt = utils.guess_format(slurped)
-    else:
-        # Else passed dict of stuff
-        stuff = template
-        simfmt = utils.guess_format(stuff)
-        stuff = utils.escape_template(stuff)
-
-    return stuff, simfmt
+from . import hyd
 
 
 def make_workflow(spec, simple=False):
@@ -56,10 +33,7 @@ def make_workflow(spec, simple=False):
     g_req = spec.get('g_req', None)
     max_iters = spec.get('max_iterations', None)
 
-    stuff, simfmt = process_template(template)
-
-    init = make_init_stage(
-        contents=stuff,
+    init, simfmt = make_init_stage(
         workdir=workdir,
         wfname=wfname,
         template=template,
@@ -110,26 +84,51 @@ def make_workflow(spec, simple=False):
     return wf
 
 
-def make_init_stage(contents, workdir, wfname, template):
+def make_init_stage(workdir, wfname, template):
     """Make initialisation stage of Workflow
 
     Parameters
     ----------
-    contents : dict or None
-      template contents
     workdir : str
       path to run simulations in
     wfname : str
       unique name for this Workflow
-    template : str or dict
+    template : dict or str
+      template to use for simulation
 
     Returns
     -------
     init : fw.Firework
       handles template creation and passport
+    simfmt : str
+      which simulation engine to use
     """
-    return fw.Firework(
-        [firetasks.InitTemplate(contents=contents, workdir=workdir),
+    if isinstance(template, str) and template.startswith('Hydraspa('):
+        first_task = hyd.HydraspaCreate(
+            structure_name=template.lstrip('Hydraspa(').rstrip(')'),
+            workdir=workdir,
+        )
+        template = None
+        simfmt = 'raspa'
+    else:
+        if not isinstance(template, dict):
+            # Passed path to template
+            # if passed path to template, slurp it up
+
+            # old method of slurping up directory
+            stuff = None
+            slurped = utils.slurp_directory(template)
+            simfmt = utils.guess_format(slurped)
+        else:
+            # Else passed dict of stuff
+            stuff = template
+            simfmt = utils.guess_format(stuff)
+            stuff = utils.escape_template(stuff)
+
+        first_task = firetasks.InitTemplate(contents=stuff, workdir=workdir)
+
+    init = fw.Firework(
+        [first_task,
          firetasks.CreatePassport(workdir=workdir)],
         spec={
             '_category': wfname,
@@ -137,6 +136,8 @@ def make_init_stage(contents, workdir, wfname, template):
         },
         name='Template Init',
     )
+
+    return init, simfmt
 
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,

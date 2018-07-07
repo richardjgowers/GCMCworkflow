@@ -8,6 +8,8 @@ from .errors import NotEquilibratedError
 from . import utils
 from . import analysis
 
+from . import hyd
+
 from . import spec_parser
 from .spec_parser import read_spec
 

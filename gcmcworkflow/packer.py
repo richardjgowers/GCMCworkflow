@@ -9,15 +9,14 @@ CheckFlat
 import itertools
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
-import hydraspa as hrsp
 import os
 import numpy as np
 
 from . import firetasks
+from . import hyd
 from . import grids
 from . import utils
 from .workflow_creator import (
-    process_template,
     make_init_stage,
     make_sampling_point,
 )
@@ -43,30 +42,6 @@ def kinda_equal(result_a, result_b):
     return ((b_low < a_high < b_high) or
             (a_low < b_high < a_high))
 
-
-@xs
-class HydraspaCreate(fw.FiretaskBase):
-    """Creates simulation template from Hydraspa
-
-    Replaces InitTemplate task
-    """
-    required_params = ['structure_name']
-    optional_params = ['workdir']
-
-    def run_task(self, fw_spec):
-        target = self.get('workdir', '')
-
-        # create template using hydraspa
-        hrsp.cli_create(
-            structure=self['structure_name'],
-            gas='Ar',
-            forcefield='UFF',
-            outdir=target,
-        )
-
-        return fw.FWAction(
-            update_spec={'template': os.path.join(target, 'template')},
-        )
 
 
 @xs
@@ -195,7 +170,7 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
     workdir = os.path.join(workdir, struc)
 
     init = fw.Firework(
-        [HydraspaCreate(structure_name=struc, workdir=workdir),
+        [hyd.HydraspaCreate(structure_name=struc, workdir=workdir),
          firetasks.CreatePassport(workdir=workdir)],
         spec={
             '_category': wfname,
