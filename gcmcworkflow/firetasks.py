@@ -579,7 +579,7 @@ class Analyse(fw.FiretaskBase):
             finished = False
 
         # Check if we've reached max iterations
-        if not finished and (self['iteration'] + 1 >= self.get('max_iterations', np.inf)):
+        if not finished and self['iteration'] + 1 >= (self.get('max_iterations', None) or np.inf):
             timeout = True
             mean = None
             std = None
