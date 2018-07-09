@@ -105,7 +105,7 @@ def make_init_stage(workdir, wfname, template):
     """
     if isinstance(template, str) and template.startswith('Hydraspa('):
         first_task = hyd.HydraspaCreate(
-            structure_name=template.lstrip('Hydraspa(').rstrip(')'),
+            structure_name=template[9:-1],  # strips off HYDRASPA(XYZ)
             workdir=workdir,
         )
         template = None
