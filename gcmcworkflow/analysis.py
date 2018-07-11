@@ -10,6 +10,9 @@ from statsmodels.tsa import stattools
 
 from . import NotEquilibratedError
 
+# machine precision for comparisons
+EPS = np.finfo(np.float32).eps
+
 
 def split_around(sig, thresh):
     """Split *sig* around the first occurence of *thresh*
@@ -93,7 +96,12 @@ def find_eq(signal):
     ir_fit = pd.Series(ir.fit_transform(signal.index, signal.values),
                        index=signal.index)
     # find first point that we hit two "wiggles" below the assumed mean
-    eq = ir_fit[ir_fit >= (back.mean() - 2 * back.std())].index[0]
+    wiggle = back.std()
+    if wiggle == 0.0:
+        # if signal is literally flat, use machine precision
+        # avoids floating point errors in comparison
+        wiggle = EPS
+    eq = ir_fit[ir_fit >= (back.mean() - 2 * wiggle)].index[0]
 
     # check if eq onwards is flat
     # rather than checking only tail, this gives the maximum info to ADF test
