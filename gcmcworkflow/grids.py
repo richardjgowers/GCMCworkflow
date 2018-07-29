@@ -17,6 +17,9 @@ class PrepareGridInput(fw.FiretaskBase):
     def run_task(self, fw_spec):
         # copy the template to its own directory
         newdir = os.path.join(self['workdir'], 'gridmake')
+        # delete if already existing
+        if os.path.exists(newdir):
+            shutil.rmtree(newdir)
         shutil.copytree(fw_spec['template'], newdir)
 
         gastypes = raspatools.determine_gastypes(newdir)

@@ -13,8 +13,6 @@ def generate_spec():
         out.write('workdir:                 # path to store results in\n')
         out.write('pressures: [1k, 2k, 3k]  # list of pressures to run, can use k/M suffix \n')
         out.write('temperatures: [1, 2, 3]  # list of temperatures to run\n')
-        out.write('nparallel: 1             # how many replicas of each T&P to run\n')
-        out.write('ncycles:                 # length of each simulation\n')
 
 
 def read_spec(path):
@@ -67,7 +65,7 @@ def read_spec(path):
     try:
         output['ncycles'] = int(raw['ncycles'])
     except KeyError:
-        output['ncycles'] = None
+        output['ncycles'] = 1000
     try:
         output['max_iterations'] = int(raw['max_iterations'])
     except KeyError:
