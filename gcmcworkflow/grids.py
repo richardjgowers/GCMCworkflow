@@ -5,8 +5,8 @@ import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import os
 import shutil
+import subprocess
 
-from . import firetasks
 from . import raspatools
 
 
@@ -14,7 +14,31 @@ from . import raspatools
 class PrepareGridInput(fw.FiretaskBase):
     required_params = ['workdir']
 
-    def run_task(self, fw_spec):
+    def grid_exists(self, fw_spec):
+        """See if a grid is required
+
+        Make simple simulation, try and run it, check output
+        """
+        newdir = os.path.join(self['workdir'], 'gridtest')
+        if os.path.exists(newdir):
+            shutil.rmtree(newdir)
+        shutil.copytree(fw_spec['template'], newdir)
+        raspatools.update_input(newdir, T=1.0, P=1.0, ncycles=10, use_grid=True)
+        old_dir = os.getcwd()
+        os.chdir(newdir)
+        subprocess.run('simulate simulation.input',
+                       shell=True,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+        os.chdir(old_dir)
+        try:
+            raspatools.check_exit(newdir)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    def create_grid_input(self, fw_spec):
         # copy the template to its own directory
         newdir = os.path.join(self['workdir'], 'gridmake')
         # delete if already existing
@@ -54,12 +78,26 @@ class PrepareGridInput(fw.FiretaskBase):
             fout.write('NumberOfGrids {}\n'.format(len(gastypes)))
             fout.write('GridTypes     {}\n'.format(' '.join(gastypes)))
 
-        return fw.FWAction(
-            update_spec={
-                'simtree': os.path.abspath(newdir),
-                'template': fw_spec['template'],
-                'simhash': fw_spec['simhash'],
-        })
+        return os.path.abspath(newdir)
+
+    def run_gridmake(self, location):
+        old_dir = os.getcwd()
+        os.chdir(location)
+        p = subprocess.run('simulate simulation.input',
+                       check=True,
+                       shell=True,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+        os.chdir(old_dir)
+        with open('stdout', 'wb') as outf:
+            outf.write(p.stdout)
+        with open('stderr', 'wb') as outf:
+            outf.write(p.stderr)
+
+    def run_task(self, fw_spec):
+        if not self.grid_exists(fw_spec):
+            target = self.create_grid_input(fw_spec)
+            self.run_gridmake(target)
 
 
 @xs
@@ -69,6 +107,7 @@ class DestroyGrid(fw.FiretaskBase):
         # figure out where Raspa is installed
         # find appropriate grid(s)
         pass
+
 
 def make_grid_firework(workdir, parents, wfname, template):
     """Create Firework which prepares grid
@@ -89,8 +128,7 @@ def make_grid_firework(workdir, parents, wfname, template):
     gridmake : fw.Firework
     """
     return fw.Firework(
-        [PrepareGridInput(workdir=workdir),
-         firetasks.RunSimulation(fmt='raspa')],
+        [PrepareGridInput(workdir=workdir)],
         parents=parents,
         spec={
             '_category': wfname,
