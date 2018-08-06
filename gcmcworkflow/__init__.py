@@ -5,6 +5,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from .errors import NotEquilibratedError
 
+from . import fw_utils
 from . import utils
 from . import analysis
 

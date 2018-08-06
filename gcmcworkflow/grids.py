@@ -3,6 +3,7 @@
 """
 import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
+import glob
 import os
 import shutil
 import subprocess
@@ -101,12 +102,17 @@ class PrepareGridInput(fw.FiretaskBase):
 
 
 @xs
-class DestroyGrid(fw.FiretaskBase):
+class RmGrid(fw.FiretaskBase):
     # at end of workflow, get rid of grid to save space
+    required_params = ['raspa_dir', 'structure_name']
+
     def run_task(self, fw_spec):
-        # figure out where Raspa is installed
-        # find appropriate grid(s)
-        pass
+        grid_dir = os.path.join(self['raspa_dir'], 'share', 'raspa', 'grids')
+
+        targets = glob.glob(os.path.join(grid_dir, '*', self['structure_name'] + '*'))
+
+        for t in targets:
+            shutil.rmtree(t)
 
 
 def make_grid_firework(workdir, parents, wfname, template):
