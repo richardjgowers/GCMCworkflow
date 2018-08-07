@@ -41,11 +41,9 @@ def make_workflow(spec, simple=False):
 
     if use_grid:
         gridmake = grids.make_grid_firework(workdir, [init], wfname, template)
-        init_parent = gridmake
-        grid = [gridmake]
+        init_parent = [init, gridmake]
     else:
-        init_parent = init
-        grid = []
+        init_parent = [init]
 
     simulation_steps = []  # list of simulation fireworks
     analysis_steps = []  # list of post processing fireworks
@@ -76,7 +74,7 @@ def make_workflow(spec, simple=False):
     )
 
     wf = fw.Workflow(
-        [init] + grid + simulation_steps + analysis_steps + [iso_create],
+        init_parent + simulation_steps + analysis_steps + [iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
