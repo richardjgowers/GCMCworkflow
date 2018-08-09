@@ -2,6 +2,7 @@ import fireworks as fw
 from fireworks.utilities.fw_utilities import explicit_serialize as xs
 import os
 import shutil
+import time
 
 
 @xs
@@ -20,3 +21,21 @@ class ZipDir(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         shutil.make_archive(self['dst'], 'zip', self['src'])
+
+
+@xs
+class FailTask(fw.FiretaskBase):
+    def run_task(self, fw_spec):
+        raise ValueError
+
+@xs
+class NothingTask(fw.FiretaskBase):
+    def run_task(self, fw_spec):
+        return None
+
+@xs
+class WaitTask(fw.FiretaskBase):
+    required_params = ['duration']
+
+    def run_task(self, fw_spec):
+        time.sleep(self['duration'])
