@@ -1,4 +1,4 @@
 Equilibrium finding
 -------------------
 
-How th eq finding works
+How the eq finding works
