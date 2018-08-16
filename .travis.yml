@@ -13,14 +13,12 @@ python:
 install:
   - pip install -r requirements.txt -e .
   - pip install pytest-cov codecov
-script:
-  - pytest -v --cov=./gcmcworkflow
-after_success:
-  - codecov
 
 
 jobs:
   include:
+    - script: pytest -v --cov=./gcmcworkflow
+      after_success: codecov
     - stage: deploy
       install: skip
       script: echo hello
