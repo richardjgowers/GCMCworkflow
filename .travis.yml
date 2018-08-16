@@ -1,33 +1,27 @@
 stages:
-  - name: test
-    if: type = push AND branch = master OR type = pull_request
-  - name: pypi
-    if: type = push AND branch = master
-
+- name: test
+  if: type = push AND branch = master OR type = pull_request
+- name: pypi
+  if: type = push AND branch = master
 language: python
 services: mongodb
-
 cache: pip
-
 python:
-  - "3.6"
-
+- '3.6'
 install:
-  - pip install -r requirements.txt -e .
-  - pip install pytest-cov codecov
-
-
+- pip install -r requirements.txt -e .
+- pip install pytest-cov codecov
 jobs:
   include:
-    - script: pytest -v --cov=./gcmcworkflow
-      after_success: codecov
-    - stage: pypi
-      install: skip
-      script: echo hello
-      deploy:
-        provider: pypi
-        user: "richard.j.gowers"
-        password:
-          secure: "derp"
-        on:
-          tags: true
+  - script: pytest -v --cov=./gcmcworkflow
+    after_success: codecov
+  - stage: pypi
+    install: skip
+    script: echo hello
+    deploy:
+      provider: pypi
+      user: richard.j.gowers
+      password:
+        secure: AbPEhtHbNQOonXF4yPDeJ3toKzpVR3Uzwq1sATQRf3ut6pgozQbhcCDp3XZqqCwSFw0X6mTaLmoKjQOwmS3PRWklBGbH3y8EobjcrkKwDkvTd7TKHsThlHRoksNPzZSP+GNGZKLapM7SS7UpcXZamzmnMwj7KpMZsEeIxdhGwND/0TLXot308UyL82JhGHApyHTteL9YnUFcnT7c5YmTA3/xw8y8xj+LPMtvrY0Cyb8rsU/AGezYJc45c75umXxYp0BYOfqV5ObAAxc3SYDbat6Zjr7izdVmazqpUjQx3bVLkTFXkv20Wsp5M0pPFILlpfKD+58q8mCHRcwdCk5od+uLtwBlicaxcd3xUoVnweXCAohTny0JE8XHKVK4dhYO8JjbKgwUscipq7l9P0yiDe/K5KONR9frC7uPQSSTgVGcbghtPIbV7HdHMJGbBcSJgHBOD1uMEy1CkaAtdQ7aHP5hPHkTbQVYEeHWGmlciBHU62Wz76rc00hY11jp7DfwQ/8w+o6qFD0AZ5vPVaL7cMl8ZuJBvUr6yuznw/P0tGKmTPlxaQM3p53PKgFdfHs9WRF8JFjmGJkQd3kv/V3ZRpfcLK88pKQXegKHa0s5AykM1SWcBVaHv2bQzd754J5LTHsVNZ4k5KWK8VGmV4iDyk8uCRca6MlKrhCauQusxBo=
+      on:
+        tags: true
