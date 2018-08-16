@@ -6,12 +6,16 @@ cache: pip
 python:
   - "3.6"
 
+install:
+  - pip install -r requirements.txt -e .
+  - pip install pytest-cov codecov
+script:
+  - pytest -v --cov=./gcmcworkflow
+after_success:
+  - codecov
+
+
 jobs:
-  - stage: "Tests"
-    install:
-      - pip install -r requirements.txt -e .
-      - pip install pytest-cov codecov
-    script:
-      - pytest -v --cov=./gcmcworkflow
-    after_success:
-      - codecov
+  - stage: "Deploy"
+    install: skip
+    script: echo hello
