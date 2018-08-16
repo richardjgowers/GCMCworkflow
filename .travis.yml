@@ -20,6 +20,7 @@ after_success:
 
 
 jobs:
-  - stage: deploy
-    install: skip
-    script: echo hello
+  include:
+    - stage: deploy
+      install: skip
+      script: echo hello
