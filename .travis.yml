@@ -1,8 +1,8 @@
 stages:
   - test
-    if: (type = push AND branch = master) OR (type = pull_request)
+    if: type = push AND branch = master OR type = pull_request
   - name: pypi
-    if: (type = push AND branch = master)
+    if: type = push AND branch = master
 
 language: python
 services: mongodb
