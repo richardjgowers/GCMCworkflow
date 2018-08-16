@@ -13,7 +13,7 @@ Welcome to GCMCWorkflow's documentation!
    self
    installation
    tutorial
-   usage_docs
+   usage
    methods
 
 
