@@ -1,7 +1,8 @@
 stages:
-  - test
+  - name: test
+    if: type = push AND branch = master OR type = pull_request
   - name: pypi
-    if: branch = master
+    if: type = push AND branch = master
 
 language: python
 services: mongodb
@@ -25,8 +26,8 @@ jobs:
       script: echo hello
       deploy:
         provider: pypi
-	user: "richardjgowers"
-	password:
-	  secure: "derp"
-	on:
-	  tags: true
+        user: "richard.j.gowers"
+        password:
+          secure: "derp"
+        on:
+          tags: true
