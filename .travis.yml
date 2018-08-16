@@ -1,6 +1,7 @@
 stages:
   - test
-  - deploy
+  - name: deploy
+    if: branch = master
 
 language: python
 services: mongodb
@@ -20,7 +21,5 @@ jobs:
     - script: pytest -v --cov=./gcmcworkflow
       after_success: codecov
     - stage: deploy
-      on:
-        tags: true
       install: skip
       script: echo hello
