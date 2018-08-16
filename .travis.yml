@@ -1,3 +1,7 @@
+stages:
+  - test
+  - deploy
+
 language: python
 services: mongodb
 
@@ -16,6 +20,6 @@ after_success:
 
 
 jobs:
-  - stage: "Deploy"
+  - stage: deploy
     install: skip
     script: echo hello
