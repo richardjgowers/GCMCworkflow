@@ -25,8 +25,8 @@ jobs:
       script: echo hello
       deploy:
         provider: pypi
-	user: "richard.j.gowers"
-	password:
-	  secure: "derp"
-	on:
-	  tags: true
+        user: "richard.j.gowers"
+        password:
+          secure: "derp"
+        on:
+          tags: true
