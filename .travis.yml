@@ -20,5 +20,8 @@ jobs:
     - script: pytest -v --cov=./gcmcworkflow
       after_success: codecov
     - stage: deploy
+      on:
+        - branch: master
+        - tags: true
       install: skip
       script: echo hello
