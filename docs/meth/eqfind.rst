@@ -18,7 +18,9 @@ It will also be responsible for detecting when equilibrium has not been reached.
 Monotonic fit
 """""""""""""
 
-Firstly,
+From inspecting the timeseries, it is immediately obvious there is some "noise" in the signal.
+This isn't actually noise, but instead the natural oscillations around the mean value in the system.
+To help smooth the data,
 a monotonic regression is fitted to the entire timeseries.
 A monotonic regression can be thought of as
 a rolling line of best fit which can only increase or remain constant, but never decrease.
@@ -31,8 +33,13 @@ therefore the monotonic fit provides a good model of the smoothed behaviour of t
 Estimating the mean and standard deviation
 """"""""""""""""""""""""""""""""""""""""""
 
-Secondly,
-we take the final half of the timeseries and take the mean and standard deviation of this.
+Once the signal has reached equilibrium,
+it will oscillate around a mean value.
+We therefore want to identify a value which represents the lower bound of what is possible.
+To do this we assume that the final half of the signal can be used to represent the mean and standard deviation
+of the timeseries.
+We then choose a value of 2 standard deviations below the mean to represent our lower bound.
+We will of course later check the assumptions made here.
 It is important to note that these values will not be correct estimates of the data,
 but they are useful for identifying the equilibration point.
 
