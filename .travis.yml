@@ -1,8 +1,8 @@
 stages:
 - name: test
-  if: branch = master or tag is present
+  if: branch = master
 - name: pypi
-  if: tag is present
+  if: type = push
 language: python
 services: mongodb
 cache: pip
