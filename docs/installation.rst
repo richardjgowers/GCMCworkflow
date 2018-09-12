@@ -41,5 +41,5 @@ GCMCWorkflow can current use the following drivers:
  - `zeo++`_
  - Raspa_
 
-.. `zeo++`: http://zeoplusplus.org
-.. Raspa: https://www.iraspa.org/RASPA/index.html
+.. _`zeo++`: http://zeoplusplus.org
+.. _Raspa: https://www.iraspa.org/RASPA/index.html
