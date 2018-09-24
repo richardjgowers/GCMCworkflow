@@ -49,15 +49,21 @@ def read_spec(path):
     else:
         output['workdir'] = os.path.abspath(workdir)
 
+    if not isinstance(raw['pressures'], (list, tuple)):
+        raw['pressures'] = [raw['pressures']]
     try:
         output['pressures'] = list(itertools.chain.from_iterable(
             utils.conv_to_number(str(v)) for v in raw['pressures']))
     except KeyError:
         output['pressures'] = [None]
+
+    if not isinstance(raw['temperatures'], (list, tuple)):
+        raw['temperatures'] = [raw['temperatures']]
     try:
         output['temperatures'] = [float(v) for v in raw['temperatures']]
     except KeyError:
         output['temperatures'] = [None]
+
     try:
         output['nparallel'] = int(raw['nparallel'])
     except KeyError:

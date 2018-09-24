@@ -1,6 +1,8 @@
 import gcmcworkflow as gcwf
 import os
 import pytest
+import numpy as np
+from numpy.testing import assert_almost_equal
 
 
 @pytest.fixture
@@ -38,3 +40,13 @@ def test_read_grid_spec(spec_input_dir, GRID_SPEC):
 
     for k, v in GRID_SPEC.items():
         assert spec[k] == v
+
+def test_read_logspace_spec(spec_input_dir):
+    spec = gcwf.read_spec(os.path.join(spec_input_dir, 'log_spec.yml'))
+
+
+    assert spec['temperatures'] == [400.0]
+    assert_almost_equal(spec['pressures'],
+                        # 100^2, 100^4
+                        np.logspace(2, 4, 5),
+                        decimal=3)
