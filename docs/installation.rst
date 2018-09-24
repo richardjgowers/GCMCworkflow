@@ -37,7 +37,7 @@ GCMCWorkflow does not perform the individual GCMC simulations, but instead
 relies on a driver program beneath it.
 I.e. you use GCMCWorkflow, GCMCWorkflow uses Raspa.
 
-GCMCWorkflow can current use the following drivers:
+GCMCWorkflow can currently use the following drivers:
  - `zeo++`_
  - Raspa_
 
