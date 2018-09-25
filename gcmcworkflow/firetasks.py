@@ -67,6 +67,7 @@ from . import formats
 from . import raspatools
 from . import utils
 from . import analysis
+from . import adaptive_sampling
 
 
 @xs
@@ -242,7 +243,7 @@ class CopyTemplate(fw.FiretaskBase):
         if is_restart:
             simhash = utils.parse_sim_path(self['previous_simdir']).simhash
         else:
-            simhash = fw_spec['simhash']
+            simhash = '1234567'  # fw_spec['simhash']
 
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
@@ -259,7 +260,8 @@ class CopyTemplate(fw.FiretaskBase):
             fmt=fmt,
             T=self['temperature'],
             P=self['pressure'],
-            n=self['ncycles'],
+            # default to 1000 cycles
+            n=self['ncycles'] or 1000,
             use_grid=self.get('use_grid', False),
         )
 
@@ -523,7 +525,7 @@ class Analyse(fw.FiretaskBase):
         # adjust ncycles based on how many parallel runs we have
         ncycles = ncycles // nparallel
 
-        runs, pps = make_sampling_point(
+        runs, ana = make_sampling_point(
             parent_fw=None,
             temperature=self['temperature'],
             pressure=self['pressure'],
@@ -541,7 +543,7 @@ class Analyse(fw.FiretaskBase):
             max_iterations=self.get('max_iterations', None),
         )
 
-        return fw.Workflow(runs + [pps])
+        return fw.Workflow(runs + [ana])
 
     def run_task(self, fw_spec):
         timeseries = {p_id: utils.make_series(ts)
@@ -591,6 +593,9 @@ class Analyse(fw.FiretaskBase):
 
         if finished or timeout:
             return fw.FWAction(
+                update_spec={
+                    'template': fw_spec['template'],
+                },
                 stored_data={
                     'result': (mean, std),
                     'equilibrated': equilibrated,
@@ -635,6 +640,56 @@ class Analyse(fw.FiretaskBase):
                     template=fw_spec['template'],
                 ),
             )
+
+
+@xs
+class EqualYSampler(fw.FiretaskBase):
+    """Based on results, choose where to sample next"""
+    required_params = ['n_extra', 'workdir', 'temperature']
+
+    def prepare_new_points(self, pressures, wfname, template):
+        from .workflow_creator import make_sampling_point
+
+        new_fws = []
+        for P in pressures:
+            runs, ana = make_sampling_point(
+                parent_fw=None,
+                temperature=self['temperature'],
+                pressure=P,
+                ncycles=None,
+                nparallel=1,
+                wfname=wfname,
+                template=template,
+                workdir=self['workdir'],
+                simple=False,
+                use_grid=True,
+                g_req=self['g_req'],
+                max_iterations=self['max_iterations'],
+            )
+            new_fws.extend(runs + [ana])
+
+        return fw.Workflow(new_fws)
+
+    def run_task(self, fw_spec):
+        results = sorted(fw_spec['results_array'],
+                         key=lambda x: (x[0], x[1]))
+        results = [r for r in results if r[0] == self['temperature']]
+
+        new_pressures = adaptive_sampling.propose_new_pressures(
+            xs=[r[1] for r in results],
+            ys=[r[2] for r in results],
+            n_new=self['n_extra'],
+        )
+
+        new_sims = self.prepare_new_points(
+            pressures=new_pressures,
+            wfname=fw_spec['_category'],
+            template=fw_spec['template'],
+        )
+
+        return fw.FWAction(
+            detours=new_sims
+        )
 
 
 @xs

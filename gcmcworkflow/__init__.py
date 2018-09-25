@@ -9,6 +9,7 @@ from . import fw_utils
 from . import utils
 from . import analysis
 from . import formats
+from . import adaptive_sampling
 
 from . import hyd
 

@@ -29,7 +29,7 @@ def make_workflow(spec, simple=False):
     wfname = spec['name']
     use_grid = spec.get('use_grid', False)
     g_req = spec.get('g_req', None)
-    max_iters = spec.get('max_iterations', None)
+    max_iterations = spec.get('max_iterations', None)
 
     init = make_init_stage(
         workdir=workdir,
@@ -47,8 +47,9 @@ def make_workflow(spec, simple=False):
     analysis_steps = []  # list of Analysis fireworks
     adaptive_steps = []
     for (T, pressures, adaptive) in spec['conditions']:
+        this_T_ana = []  # for adaptives
         for P in pressures:
-            this_condition, this_condition_analysis = make_sampling_point(
+            sim, ana = make_sampling_point(
                 parent_fw=init_parent,
                 temperature=T,
                 pressure=P,
@@ -60,12 +61,22 @@ def make_workflow(spec, simple=False):
                 simple=simple,
                 use_grid=use_grid,
                 g_req=g_req,
-                max_iterations=max_iters,
+                max_iterations=max_iterations,
             )
-            simulation_steps.extend(this_condition)
-            analysis_steps.append(this_condition_analysis)
-            if adaptive:
-                pass
+            simulation_steps.extend(sim)
+            this_T_ana.append(ana)
+            analysis_steps.append(ana)
+        if adaptive:
+            adapt = make_adaptive(
+                parent_fw=this_T_ana,
+                n_extra=adaptive,
+                temperature=T,
+                wfname=wfname,
+                workdir=workdir,
+                g_req=g_req,
+                max_iterations=max_iterations,
+            )
+            adaptive_steps.append(adapt)
 
     iso_create = fw.Firework(
         [firetasks.IsothermCreate(workdir=workdir)],
@@ -75,7 +86,7 @@ def make_workflow(spec, simple=False):
     )
 
     wf = fw.Workflow(
-        init_parent + simulation_steps + analysis_steps + [iso_create],
+        init_parent + simulation_steps + analysis_steps + adaptive_steps + [iso_create],
         name=wfname,
         metadata={'GCMCWorkflow': True},  # tag as GCMCWorkflow workflow
     )
@@ -308,3 +319,38 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
     )
 
     return runs + postprocesses, analysis
+
+
+def make_adaptive(parent_fw, n_extra, temperature, wfname, workdir,
+                  g_req=None, max_iterations=None):
+    """Adaptive sampling stage
+
+    Parameters
+    ----------
+    parent_fw : list of Fireworks
+      previous sampling for this adaptive range
+    temperature : float
+      temperature to sample
+    n_extra : int
+      number of extra samples to start based on previous
+    wfname, workdir : str
+    g_req : float, optional
+    max_iterations : int, optional
+
+    Returns
+    -------
+    adaptive : fw.Firework
+      adaptive sampling Firework
+    """
+    return fw.Firework(
+        [firetasks.EqualYSampler(
+            n_extra=n_extra,
+            temperature=temperature,
+            workdir=workdir,
+            g_req=g_req,
+            max_iterations=max_iterations,
+        )],
+        spec={'_category': wfname},
+        parents=parent_fw,
+        name='Adaptive',
+    )
