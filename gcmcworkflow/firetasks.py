@@ -63,6 +63,7 @@ except:
 # Import format specific tools
 from . import NotEquilibratedError
 
+from . import formats
 from . import raspatools
 from . import utils
 from . import analysis
@@ -170,7 +171,7 @@ class CopyTemplate(fw.FiretaskBase):
 
     Provides: simtree - path to the customised version of the template
     """
-    required_params = ['temperature', 'pressure', 'fmt']
+    required_params = ['temperature', 'pressure']
     optional_params = ['previous_simdir', 'workdir', 'parallel_id', 'ncycles',
                        'use_grid']
 
@@ -232,6 +233,8 @@ class CopyTemplate(fw.FiretaskBase):
             raise NotImplementedError
 
     def run_task(self, fw_spec):
+        fmt = formats.detect_format(fw_spec['template'])
+
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
             simhash=fw_spec.get('simhash', ''),
@@ -244,7 +247,7 @@ class CopyTemplate(fw.FiretaskBase):
         # Modify input to match the spec
         self.update_input(
             target=sim_t,
-            fmt=self['fmt'],
+            fmt=fmt,
             T=self['temperature'],
             P=self['pressure'],
             n=self.get('ncycles', None),
@@ -253,7 +256,7 @@ class CopyTemplate(fw.FiretaskBase):
 
         if self.get('previous_simdir', None) is not None:
             self.set_as_restart(
-                self['fmt'],
+                fmt,
                 old=self['previous_simdir'],
                 new=sim_t,
             )
@@ -270,17 +273,17 @@ class CopyTemplate(fw.FiretaskBase):
 @xs
 class RunSimulation(fw.FiretaskBase):
     """Take a simulation directory and run it"""
-    required_params = ['fmt']
-
     bin_name = {
         'raspa': 'simulate simulation.input',
     }
 
     def run_task(self, fw_spec):
+        fmt = formats.detect_format(fw_spec['simtree'])
+
         old_dir = os.getcwd()
         os.chdir(fw_spec['simtree'])
 
-        cmd = self.bin_name[self['fmt']]
+        cmd = self.bin_name[fmt]
         try:
             p = subprocess.run(cmd,
                                check=True,
@@ -315,7 +318,7 @@ class PostProcess(fw.FiretaskBase):
      - checks simulation finished correctly (ie output was written ok)
      - creates results file for this simulation
     """
-    required_params = ['fmt', 'temperature', 'pressure', 'parallel_id',
+    required_params = ['temperature', 'pressure', 'parallel_id',
                        'workdir']
     optional_params = ['previous_result', 'use_grid']
 
@@ -354,13 +357,11 @@ class PostProcess(fw.FiretaskBase):
         return previous.append(current.iloc[:])
 
     @staticmethod
-    def calc_remainder(fmt, simdir):
-        """Calculate how many steps were performed and how many remain
+    def calc_remainder(simdir):
+        """Calculate how many steps were left unfinished
 
         Parameters
         ----------
-        fmt : str
-          format of simulation
         simdir : str
           path to simulation
 
@@ -369,6 +370,8 @@ class PostProcess(fw.FiretaskBase):
         remaining : int
           number of steps still left to run
         """
+        fmt = formats.detect_format(simdir)
+
         if fmt == 'raspa':
             return raspatools.calc_remainder(simdir)
         else:
@@ -398,7 +401,7 @@ class PostProcess(fw.FiretaskBase):
           contains Copy, Run and Analyse Fireworks
         """
         # make run FW
-        ncycles_left = self.calc_remainder(self['fmt'], previous_simdir)
+        ncycles_left = self.calc_remainder(previous_simdir)
 
         T = self['temperature']
         P = self['pressure']
@@ -412,7 +415,6 @@ class PostProcess(fw.FiretaskBase):
             pressure=self['pressure'],
             ncycles=ncycles_left,
             parallel_id=i,
-            fmt=self['fmt'],
             wfname=wfname,
             template=template,
             workdir=self['workdir'],
@@ -426,13 +428,14 @@ class PostProcess(fw.FiretaskBase):
 
     def run_task(self, fw_spec):
         simtree = fw_spec['simtree']
+        fmt = formats.detect_format(simtree)
 
         # check exit
         # will raise Error if simulation didn't finish
-        finished = self.check_exit(self['fmt'], simtree)
+        finished = self.check_exit(fmt, simtree)
 
         # parse results
-        results = self.parse_results(self['fmt'], simtree)
+        results = self.parse_results(fmt, simtree)
         # save csv of results from *this* simulation
         utils.save_csv(results, os.path.join(simtree, 'this_sim_results.csv'))
 
@@ -525,7 +528,6 @@ class Analyse(fw.FiretaskBase):
             pressure=self['pressure'],
             ncycles=ncycles,
             nparallel=nparallel,
-            fmt=self['fmt'],
             wfname=wfname,
             template=template,
             workdir=self['workdir'],

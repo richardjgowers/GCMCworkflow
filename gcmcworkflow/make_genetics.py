@@ -124,17 +124,15 @@ def Sim_FW(temperature, pressure, ref, generation_id, candidate_id, ff_updater,
             CopyTemplate(
                 temperature=temperature,
                 pressure=pressure,
-                fmt='raspa',
                 parallel_id=generation_id,
             ),
             ManipulateForcefield(
                 candidate_id=candidate_id,
                 updater=ff_updater,
             ),
-            RunSimulation(fmt='raspa'),
+            RunSimulation(),
             EvaluateResult(
                 reference=ref,
-                fmt='raspa',
                 temperature=temperature,
                 pressure=pressure,
             ),

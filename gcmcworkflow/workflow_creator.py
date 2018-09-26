@@ -33,7 +33,7 @@ def make_workflow(spec, simple=False):
     g_req = spec.get('g_req', None)
     max_iters = spec.get('max_iterations', None)
 
-    init, simfmt = make_init_stage(
+    init = make_init_stage(
         workdir=workdir,
         wfname=wfname,
         template=template,
@@ -54,7 +54,6 @@ def make_workflow(spec, simple=False):
             pressure=P,
             ncycles=ncycles,
             nparallel=nparallel,
-            fmt=simfmt,
             wfname=wfname,
             template=template,
             workdir=workdir,
@@ -98,8 +97,6 @@ def make_init_stage(workdir, wfname, template):
     -------
     init : fw.Firework
       handles template creation and passport
-    simfmt : str
-      which simulation engine to use
     """
     if isinstance(template, str) and template.startswith('Hydraspa('):
         first_task = hyd.HydraspaCreate(
@@ -107,7 +104,6 @@ def make_init_stage(workdir, wfname, template):
             workdir=workdir,
         )
         template = None
-        simfmt = 'raspa'
     else:
         if not isinstance(template, dict):
             # Passed path to template
@@ -116,11 +112,9 @@ def make_init_stage(workdir, wfname, template):
             # old method of slurping up directory
             stuff = None
             slurped = utils.slurp_directory(template)
-            simfmt = utils.guess_format(slurped)
         else:
             # Else passed dict of stuff
             stuff = template
-            simfmt = utils.guess_format(stuff)
             stuff = utils.escape_template(stuff)
 
         first_task = firetasks.InitTemplate(contents=stuff, workdir=workdir)
@@ -135,11 +129,11 @@ def make_init_stage(workdir, wfname, template):
         name='Template Init',
     )
 
-    return init, simfmt
+    return init
 
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
-                  fmt, wfname, template, workdir,
+                  wfname, template, workdir,
                   previous_simdir=None, previous_result=None, simhash=None,
                   use_grid=False):
     """Make a single Run stage
@@ -154,8 +148,6 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
       number of steps to simulate at this point
     parallel_id : int
       index of the run
-    fmt : str
-      which format simulation
     wfname : str
       unique workflow name
     template : str
@@ -182,7 +174,6 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
     copy = fw.Firework(
         [firetasks.CopyTemplate(
-            fmt=fmt,
             temperature=temperature,
             pressure=pressure,
             ncycles=ncycles,
@@ -200,7 +191,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
         name='Copy T={} P={} v{}'.format(temperature, pressure, parallel_id),
     )
     run = fw.Firework(
-        [firetasks.RunSimulation(fmt=fmt)],
+        [firetasks.RunSimulation()],
         parents=[copy],
         spec={
             '_category': wfname,
@@ -209,7 +200,6 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     )
     postprocess = fw.Firework(
         [firetasks.PostProcess(
-            fmt=fmt,
             temperature=temperature,
             pressure=pressure,
             parallel_id=parallel_id,
@@ -231,7 +221,7 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
 
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
-                        fmt, wfname, template, workdir, simple,
+                        wfname, template, workdir, simple,
                         simhash=None, previous_results=None,
                         previous_simdirs=None, use_grid=False, g_req=None,
                         iteration=None, max_iterations=None):
@@ -247,8 +237,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       length of simulation
     nparallel : int
       degree of parallelism
-    simfmt : str
-      format of the simulation
     wfname : str
       name for this workflow, so FWorkers can find it
     template : str
@@ -295,7 +283,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             pressure=pressure,
             ncycles=ncycles,
             parallel_id=i,
-            fmt=fmt,
             wfname=wfname,
             template=template,
             workdir=workdir,
@@ -313,7 +300,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             temperature=temperature,
             pressure=pressure,
             workdir=workdir,
-            fmt=fmt,
             simple=simple,
             use_grid=use_grid,
             g_req=g_req,

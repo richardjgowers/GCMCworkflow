@@ -20,7 +20,6 @@ def test_already_existing(sample_input, launchpad, template_contents):
     cp = fw.Firework([gcwf.firetasks.CopyTemplate(
         temperature=T, pressure=P,
         parallel_id=pid,
-        fmt='raspa',
         workdir=os.path.abspath('.'),
     )],
                      spec={

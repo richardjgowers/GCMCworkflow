@@ -46,8 +46,7 @@ class TestTemplateCopy(object):
     def copytemplate(sample_input, launchpad):
         cp1 = fw.Firework(
             gcwf.firetasks.CopyTemplate(temperature=10, pressure=20,
-                                        ncycles=1234, parallel_id=1,
-                                        fmt='raspa'),
+                                        ncycles=1234, parallel_id=1),
             spec={
                 'template': os.path.join(sample_input, 'template'),
             }
@@ -91,7 +90,7 @@ class TestTemplateCopy(object):
 
 @pytest.fixture
 def run_raspa(short_raspa, launchpad):
-    job = fw.Firework([gcwf.firetasks.RunSimulation(fmt='raspa')],
+    job = fw.Firework([gcwf.firetasks.RunSimulation()],
                        spec={'simtree': short_raspa})
     launchpad(fw.Workflow([job]))
 

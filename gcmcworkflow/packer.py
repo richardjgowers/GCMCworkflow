@@ -46,10 +46,10 @@ def kinda_equal(result_a, result_b):
 
 @xs
 class CapacityDecider(fw.FiretaskBase):
-    required_params = ['fmt', 'workdir', 'iteration']
+    required_params = ['workdir', 'iteration']
     optional_params = ['previous_results']
 
-    def make_detour(self, previous, wfname, fmt, template, workdir, simhash):
+    def make_detour(self, previous, wfname, template, workdir, simhash):
         # make more simulations at higher pressures
         temperature = max(r[0] for r in previous)
         max_pressure = max(r[1] for r in previous)
@@ -65,7 +65,6 @@ class CapacityDecider(fw.FiretaskBase):
                 pressure=P,
                 ncycles=None,
                 nparallel=1,
-                fmt=fmt,
                 wfname=wfname,
                 template=template,
                 workdir=workdir,
@@ -79,7 +78,6 @@ class CapacityDecider(fw.FiretaskBase):
 
         new_me = fw.Firework(
             [self.__class__(
-                fmt=fmt,
                 workdir=workdir,
                 previous_results=previous,
                 iteration=self['iteration'] + 1,
@@ -124,7 +122,6 @@ class CapacityDecider(fw.FiretaskBase):
                 detours=self.make_detour(
                     previous=total_results,
                     wfname=fw_spec['_category'],
-                    fmt=self['fmt'],
                     template=fw_spec['template'],
                     workdir=self['workdir'],
                     simhash=fw_spec['simhash'],
@@ -165,7 +162,6 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
 
     wfname = struc + '_capacity'
     template = ''
-    simfmt = 'raspa'
     # work in directory with name of structure
     workdir = os.path.join(workdir, struc)
 
@@ -189,7 +185,6 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
             pressure=P,
             ncycles=ncycles,
             nparallel=nparallel,
-            fmt=simfmt,
             wfname=wfname,
             template=template,
             workdir=workdir,
@@ -201,7 +196,7 @@ def make_capacity_measurement(struc, workdir, temperature=None, pressures=None):
         analysis_steps.append(this_condition_analysis)
 
     capacity = fw.Firework(
-        [CapacityDecider(fmt=simfmt, workdir=workdir, iteration=0)],
+        [CapacityDecider(workdir=workdir, iteration=0)],
         # pass init to give template in spec
         parents=[init] + analysis_steps,
         spec={

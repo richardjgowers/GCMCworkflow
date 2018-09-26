@@ -282,10 +282,10 @@ class ManipulateForcefield(fw.FiretaskBase):
 @xs
 class EvaluateResult(fw.FiretaskBase):
     """Calculate error of result"""
-    required_params = ['reference', 'fmt', 'temperature', 'pressure']
+    required_params = ['reference', 'temperature', 'pressure']
 
     @staticmethod
-    def grab_result(loc, fmt):
+    def grab_result(loc):
         """Grab the result from inside *loc*
 
         Parameters
@@ -298,6 +298,7 @@ class EvaluateResult(fw.FiretaskBase):
         result : float
           average result
         """
+        fmt = formats.detect_format(loc)
         if fmt == 'raspa':
             return raspatools.parse_results_simple(loc)
         else:
@@ -305,7 +306,7 @@ class EvaluateResult(fw.FiretaskBase):
 
 
     def run_task(self, fw_spec):
-        result = self.grab_result(fw_spec['simtree'], self['fmt'])
+        result = self.grab_result(fw_spec['simtree'])
 
         ref = self['reference']
         my_fitness = abs(result - ref) / ref

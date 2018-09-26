@@ -21,7 +21,6 @@ def runstage_parameters():
         'pressure': 1234.0,
         'ncycles': 4000,
         'parallel_id': 7,
-        'fmt': 'raspa',
         'wfname': 'TestWF',
         'template': '/my_template/',
         'workdir': '/my_workdir',
