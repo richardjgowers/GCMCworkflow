@@ -71,7 +71,7 @@ def read_spec(path):
     try:
         output['ncycles'] = int(raw['ncycles'])
     except KeyError:
-        output['ncycles'] = 1000
+        output['ncycles'] = 1000  # default ncycles
     try:
         output['max_iterations'] = int(raw['max_iterations'])
     except KeyError:

@@ -159,11 +159,14 @@ class CopyTemplate(fw.FiretaskBase):
     """Create a copy of the provided template
 
     Attributes:
-     - template - path to the template to copy
      - temperature
      - pressure
-     - parallel_id, optional
-     - ncycles, optional
+     - ncycles
+    Optionally:
+     - previous_simdir : for a restart
+     - workdir : to control where simulation is done
+     - parallel_id : to identify this sim, defaults to 0
+     - use_grid : defaults to False
 
     Does:
      - creates new directory containing the Template
@@ -171,8 +174,8 @@ class CopyTemplate(fw.FiretaskBase):
 
     Provides: simtree - path to the customised version of the template
     """
-    required_params = ['temperature', 'pressure']
-    optional_params = ['previous_simdir', 'workdir', 'parallel_id', 'ncycles',
+    required_params = ['temperature', 'pressure', 'ncycles']
+    optional_params = ['previous_simdir', 'workdir', 'parallel_id',
                        'use_grid']
 
     @staticmethod
@@ -256,7 +259,7 @@ class CopyTemplate(fw.FiretaskBase):
             fmt=fmt,
             T=self['temperature'],
             P=self['pressure'],
-            n=self.get('ncycles', None),
+            n=self['ncycles'],
             use_grid=self.get('use_grid', False),
         )
 

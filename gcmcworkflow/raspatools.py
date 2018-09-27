@@ -43,11 +43,11 @@ def update_input(treant, T, P, ncycles, use_grid=False):
     ----------
     treant : str
       the simulation directory to work on
-    T : float or None
+    T : float
       temperature to simulate
-    P : float or None
+    P : float
       pressure to simulate
-    ncycles : int or None
+    ncycles : int
       number of cycles to simulate (in this run)
     """
     simfile = os.path.join(treant, 'simulation.input')
@@ -70,11 +70,11 @@ def update_input(treant, T, P, ncycles, use_grid=False):
             if re.match(r'^\s*(?:RandomSeed)', line):
                 seeded = True
                 line = seedline
-            elif ('ExternalPressure' in line) and (P is not None):
+            elif 'ExternalPressure' in line:
                 line = "ExternalPressure {}\n".format(P)
-            elif ('ExternalTemperature' in line) and (T is not None):
+            elif 'ExternalTemperature' in line:
                 line = "ExternalTemperature {}\n".format(T)
-            elif ('NumberOfCycles' in line) and (ncycles is not None):
+            elif 'NumberOfCycles' in line:
                 line = "NumberOfCycles {}\n".format(ncycles)
             if not line.lstrip().startswith(forbidden):
                 newfile.write(line)
