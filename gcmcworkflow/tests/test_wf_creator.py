@@ -46,15 +46,17 @@ class TestTemplateCopy(object):
     def copytemplate(sample_input, launchpad):
         cp1 = fw.Firework(
             gcwf.firetasks.CopyTemplate(temperature=10, pressure=20,
-                                        ncycles=1234, parallel_id=1),
+                                        ncycles=1234, parallel_id=1,
+            ),
             spec={
                 'template': os.path.join(sample_input, 'template'),
+                'simhash': 'abcdefg',
             }
         )
         wf = fw.Workflow([cp1])
         launchpad(wf)
         print(os.listdir())
-        return glob.glob('sim_*')[0]
+        return glob.glob('sim_abcdefg_*')[0]
 
     @staticmethod
     def get_field(t, key):

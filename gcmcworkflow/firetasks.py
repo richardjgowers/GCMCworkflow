@@ -191,7 +191,7 @@ class CopyTemplate(fw.FiretaskBase):
         workdir : str
           path to place template
         simhash : str
-          7 digit hash of the simulation (or '')
+          7 digit hash of the simulation
         template : str
           template to copy
         T, P : float
@@ -235,9 +235,15 @@ class CopyTemplate(fw.FiretaskBase):
     def run_task(self, fw_spec):
         fmt = formats.detect_format(fw_spec['template'])
 
+        is_restart = self.get('previous_simdir', None) is not None
+        if is_restart:
+            simhash = utils.parse_sim_path(self['previous_simdir']).simhash
+        else:
+            simhash = fw_spec['simhash']
+
         sim_t = self.copy_template(
             workdir=self.get('workdir', ''),
-            simhash=fw_spec.get('simhash', ''),
+            simhash=simhash,
             template=fw_spec['template'],
             P=self['pressure'],
             T=self['temperature'],
@@ -254,7 +260,7 @@ class CopyTemplate(fw.FiretaskBase):
             use_grid=self.get('use_grid', False),
         )
 
-        if self.get('previous_simdir', None) is not None:
+        if is_restart:
             self.set_as_restart(
                 fmt,
                 old=self['previous_simdir'],
@@ -265,7 +271,6 @@ class CopyTemplate(fw.FiretaskBase):
             update_spec={
                 'simtree': os.path.abspath(sim_t),
                 'template': fw_spec['template'],
-                'simhash': fw_spec['simhash'],
             }
         )
 
@@ -378,7 +383,7 @@ class PostProcess(fw.FiretaskBase):
             raise NotImplementedError("Unrecognised format '{}' to parse"
                                       "".format(fmt))
 
-    def prepare_restart(self, template, simhash, previous_simdir,
+    def prepare_restart(self, template, previous_simdir,
                         current_result, wfname):
         """Prepare a continuation of the same sampling point
 
@@ -386,8 +391,6 @@ class PostProcess(fw.FiretaskBase):
         ----------
         template : str
           path to template to use
-        simhash : str
-          7 digit simulation hash
         previous_simdir : str
           path to previous simulation
         current_result : pd.Series
@@ -420,7 +423,6 @@ class PostProcess(fw.FiretaskBase):
             workdir=self['workdir'],
             previous_simdir=previous_simdir,
             previous_result=current_result.to_csv(),
-            simhash=simhash,
             use_grid=self.get('use_grid', False),
         )
 
@@ -447,7 +449,6 @@ class PostProcess(fw.FiretaskBase):
         if not finished:
             new_fws = self.prepare_restart(
                 template=fw_spec['template'],
-                simhash=fw_spec.get('simhash', ''),
                 previous_simdir=simtree,
                 current_result=results,
                 wfname=fw_spec['_category'],
@@ -463,7 +464,6 @@ class PostProcess(fw.FiretaskBase):
                 stored_data={'result': results.to_csv()},
                 update_spec={
                     'template': fw_spec['template'],
-                    'simhash': fw_spec.get('simhash', ''),
                 },
                 mod_spec=[{
                     '_push': {
@@ -495,7 +495,7 @@ class Analyse(fw.FiretaskBase):
     optional_params = ['simple', 'use_grid', 'g_req', 'max_iterations']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
-                         wfname, template, simhash):
+                         wfname, template):
         """Prepare a new sampling stage
 
         Parameters
@@ -508,8 +508,6 @@ class Analyse(fw.FiretaskBase):
           unique name for this Workflow
         template : str
           path to sim template
-        simhash : str
-          unique hash for the sim
 
         Returns
         -------
@@ -534,7 +532,6 @@ class Analyse(fw.FiretaskBase):
             simple=self['simple'],
             previous_results=previous_results,
             previous_simdirs=previous_simdirs,
-            simhash=simhash,
             use_grid=self.get('use_grid', False),
             g_req=self.get('g_req', None),
             iteration=self['iteration'] + 1,
@@ -633,7 +630,6 @@ class Analyse(fw.FiretaskBase):
                     ncycles=nreq,
                     wfname=fw_spec['_category'],
                     template=fw_spec['template'],
-                    simhash=fw_spec['simhash']
                 ),
             )
 

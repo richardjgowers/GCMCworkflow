@@ -134,7 +134,7 @@ def make_init_stage(workdir, wfname, template):
 
 def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
                   wfname, template, workdir,
-                  previous_simdir=None, previous_result=None, simhash=None,
+                  previous_simdir=None, previous_result=None,
                   use_grid=False):
     """Make a single Run stage
 
@@ -169,8 +169,6 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
     if ((previous_simdir is None and not previous_result is None) or
         (not previous_simdir is None and previous_result is None)):
         raise ValueError("Must supply *both* previous simdir and result")
-    if simhash is None:
-        simhash = ''
 
     copy = fw.Firework(
         [firetasks.CopyTemplate(
@@ -185,7 +183,6 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
         parents=parent_fw,
         spec={
             'template': template,
-            'simhash': simhash,
             '_category': wfname,
         },
         name='Copy T={} P={} v{}'.format(temperature, pressure, parallel_id),
@@ -222,8 +219,8 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
                         wfname, template, workdir, simple,
-                        simhash=None, previous_results=None,
-                        previous_simdirs=None, use_grid=False, g_req=None,
+                        previous_results=None, previous_simdirs=None,
+                        use_grid=False, g_req=None,
                         iteration=None, max_iterations=None):
     """Make many Simfireworks for a given conditions
 
@@ -245,8 +242,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       path to where to store results
     simple : bool
       complex recycle loop or not
-    simhash : str, optional
-      unique string for this simulation template
     previous_results : dict, optional
       mapping of parallel_id to previous results
     previous_simdirs : dict, optional
@@ -288,7 +283,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             workdir=workdir,
             previous_simdir=previous_simdirs.get(i, None),
             previous_result=previous_results.get(i, None),
-            simhash=simhash,
             use_grid=use_grid,
         )
         runs.append(copy)

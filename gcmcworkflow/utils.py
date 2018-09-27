@@ -44,7 +44,7 @@ def gen_name(T, P, idx):
 SimPath = namedtuple('SimPath', 'path,simhash,T,P,gen_id,parallel_id')
 
 SIM_PATH_PATTERN = re.compile(
-    r'sim(.{7})?_T(\d+\.?\d*)_P(\d+\.?\d*)_gen(\d+)_v(\d+)')
+    r'sim_(.{7})?_T(\d+\.?\d*)_P(\d+\.?\d*)_gen(\d+)_v(\d+)')
 def gen_sim_path(simhash, T, P, gen_id, p_id):
     """Generate a path name for a simulation
 
@@ -63,7 +63,7 @@ def gen_sim_path(simhash, T, P, gen_id, p_id):
     -------
     path : str
     """
-    return 'sim{hash}_T{t}_P{p}_gen{g}_v{i}'.format(
+    return 'sim_{hash}_T{t}_P{p}_gen{g}_v{i}'.format(
         hash=simhash, t=T, p=P, g=gen_id, i=p_id
     )
 
