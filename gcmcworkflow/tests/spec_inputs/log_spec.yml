@@ -1,4 +1,5 @@
-pressures: logspace(100, 10000, 5)
-temperatures: 400
+conditions:
+ - pressures: logspace(100, 10000, 5)
+   temperatures: 400
 template: here/
 workdir: there/

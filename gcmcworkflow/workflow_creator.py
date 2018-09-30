@@ -22,8 +22,6 @@ def make_workflow(spec, simple=False):
     workflow : fw.Workflow
       Workflow object ready to submit to LaunchPad
     """
-    temperatures = spec['temperatures']
-    pressures = spec['pressures']
     nparallel = spec['nparallel']
     ncycles = spec['ncycles']
     template = spec['template']
@@ -46,28 +44,32 @@ def make_workflow(spec, simple=False):
         init_parent = [init]
 
     simulation_steps = []  # list of simulation fireworks
-    analysis_steps = []  # list of post processing fireworks
-    for T, P in itertools.product(temperatures, pressures):
-        this_condition, this_condition_analysis = make_sampling_point(
-            parent_fw=init_parent,
-            temperature=T,
-            pressure=P,
-            ncycles=ncycles,
-            nparallel=nparallel,
-            wfname=wfname,
-            template=template,
-            workdir=workdir,
-            simple=simple,
-            use_grid=use_grid,
-            g_req=g_req,
-            max_iterations=max_iters,
-        )
-        simulation_steps.extend(this_condition)
-        analysis_steps.append(this_condition_analysis)
+    analysis_steps = []  # list of Analysis fireworks
+    adaptive_steps = []
+    for (T, pressures, adaptive) in spec['conditions']:
+        for P in pressures:
+            this_condition, this_condition_analysis = make_sampling_point(
+                parent_fw=init_parent,
+                temperature=T,
+                pressure=P,
+                ncycles=ncycles,
+                nparallel=nparallel,
+                wfname=wfname,
+                template=template,
+                workdir=workdir,
+                simple=simple,
+                use_grid=use_grid,
+                g_req=g_req,
+                max_iterations=max_iters,
+            )
+            simulation_steps.extend(this_condition)
+            analysis_steps.append(this_condition_analysis)
+            if adaptive:
+                pass
 
     iso_create = fw.Firework(
         [firetasks.IsothermCreate(workdir=workdir)],
-        parents=analysis_steps,
+        parents=analysis_steps + adaptive_steps,
         spec={'_category': wfname},
         name='Isotherm create',
     )

@@ -246,11 +246,10 @@ def make_series(ts):
     )
 
 
-SPACE_PAT = re.compile(r'l(?:in|og)space\((\d+\.?\d*)[,\s]*(\d+\.?\d*)[,\s]*(\d+)\s*\)')
 def conv_to_number(val):
-    """Convert a string to a sequence number
+    """Convert a string to a float value
 
-    Can apply either a k (thousand) or M (million) multiplier
+    Can apply either a k (thousand) or M (million) multiplier prefix
 
     Parameter
     ---------
@@ -259,31 +258,16 @@ def conv_to_number(val):
 
     Returns
     -------
-    values : list
-      sequence of float values
+    value : float
+      float value representation
 
-    Example
-    -------
-    100k                       -> (100,000,)
-    5.6M                       -> (5,600,000.0,)
-    logspace(0.001, 100.0, 25) -> geometric spaced points between 0.001 and 100
-    linspace(0.001, 100.0, 25) -> evenly space points between 0.001 and 100
+    Examples
+    --------
+    '50'   -> 50.0
+    '100k' -> 100,000.0
+    '5.6M' -> 5,600,000.0
     """
-    if val.startswith('l'):
-        if val.startswith('logspace'):
-            func = np.geomspace
-        elif val.startswith('linspace'):
-            func = np.linspace
-        else:
-            raise ValueError
-        start, stop, number = re.match(SPACE_PAT, val).groups()
-        start, stop, number = float(start), float(stop), int(number)
-        vals = func(start, stop, number)
-        # round values to 3dp
-        vals = [float('{:.3f}'.format(val)) for val in vals]
-
-        return vals
-    elif val[-1].isalpha():
+    if str(val)[-1].isalpha():
         val, suffix = val[:-1], val[-1]
         try:
             multi = {'k': 1e3, 'M':1e6}[suffix]
@@ -292,4 +276,21 @@ def conv_to_number(val):
     else:
         multi = 1
 
-    return [float(val) * multi]
+    return float(val) * multi
+
+
+# 3 numbers, comma separated, whitespace allowed
+# first 2 floats with optional suffix, start and end of range
+# last integer, number of values in range
+RANGE_PAT = re.compile(r'\w{8}'  # adaptive/linspace/logspace
+                       '\(\s*(\d*\.?\d*\w?)\s*,\s*'  # float with suffix
+                       '(\d*\.?\d*\w?)\s*,\s*'  # float with suffix
+                       '(\d+)\s*\)'  # integer
+)
+
+
+def logspace(start, stop, number):
+    """logspace that works like np.linspace"""
+    p1 = np.log10(start)
+    p2 = np.log10(stop)
+    return np.logspace(p1, p2, num=number, endpoint=True)
