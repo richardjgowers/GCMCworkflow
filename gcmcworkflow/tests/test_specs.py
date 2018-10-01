@@ -53,3 +53,17 @@ def test_read_logspace_spec(spec_input_dir):
                         # 100^2, 100^4
                         np.logspace(2, 4, 5),
                         decimal=3)
+
+def test_adaptive_spec(spec_input_dir):
+    spec = gcwf.read_spec(os.path.join(spec_input_dir, 'adaptive_spec.yml'))
+
+    assert len(spec['conditions']) == 2
+    T1, T2 = sorted(spec['conditions'])
+
+    assert T1[0] == 200.0
+    assert len(T1[1]) == 5
+    assert T1[2] == 5
+
+    assert T2[0] == 300.0
+    assert len(T2[1]) == 5
+    assert T2[2] == 5
