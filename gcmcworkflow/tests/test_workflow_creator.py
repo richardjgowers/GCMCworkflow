@@ -14,8 +14,10 @@ def dict_spec(sample_input):
         template={'simulation.input': 'sim\nsettings\n'},
         workdir='',
         name='Hurley',
-        pressures=[10.0, 20.0, 30.0],
-        temperatures=[204.5, 210.5],
+        conditions=[
+            (204.5, [10.0, 20.0, 30.0], 0),
+            (210.5, [10.0, 20.0, 30.0], 0),
+        ],
         ncycles=1000,
         nparallel=2,
     )
@@ -38,7 +40,7 @@ def path_spec(sample_input):
 def test_workflow_creator(dict_spec):
     wf = gcwf.workflow_creator.make_workflow(dict_spec)
 
-    nconds = len(dict_spec['pressures']) * len(dict_spec['temperatures'])
+    nconds = 6
     # expected number of Fireworks in workflow is:
     # 1 init
     # nconditions * nparallel simulation FWs
@@ -52,7 +54,7 @@ def test_workflow_identity_and_dependency(dict_spec):
     # check the connectivity between Fireworks
     wf = gcwf.workflow_creator.make_workflow(dict_spec)
 
-    nconds = len(dict_spec['pressures']) * len(dict_spec['temperatures'])
+    nconds = 6
 
     # types of Fireworks: expected number and the expected number of parents
     fw_types = {
@@ -75,8 +77,9 @@ def grid_spec():
         template={'simulation.input': 'wow\nmy sim\n'},
         workdir='',
         name='GridSpecTest',
-        pressures=[10.],
-        temperatures=[10.],
+        conditions=[
+            (10., [10.], 0)
+        ],
         ncycles=100,
         nparallel=1,
         use_grid=True,
