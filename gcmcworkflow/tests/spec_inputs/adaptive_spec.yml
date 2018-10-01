@@ -1,0 +1,5 @@
+conditions:
+ - temperatures: [200, 300]
+   pressures: adaptive(100, 25000, 10)
+template: here/
+workdir: there/
