@@ -15,7 +15,6 @@ def SIMPLE_SPEC(request, spec_input_dir):
         'temperatures': [205.0, 210.0, 215.0],
         'pressures': [10.0, 20.0, 30.0],
         'template': os.path.join(os.getcwd(), 'here'),
-        'ncycles': 1000000,
         'use_grid': spec['grid'],
     }
     fn = os.path.join(spec_input_dir, spec['fn'])
@@ -34,7 +33,7 @@ def test_read_spec(spec_input_dir, SIMPLE_SPEC):
     FN, REF_SPEC = SIMPLE_SPEC
     spec = gcwf.read_spec(FN)
 
-    for k in ('template', 'ncycles', 'use_grid'):
+    for k in ('template', 'use_grid'):
         assert spec[k] == REF_SPEC[k]
     assert len(spec['conditions']) == 9
     ref = sorted((T, [P], 0) for T, P in itertools.product(

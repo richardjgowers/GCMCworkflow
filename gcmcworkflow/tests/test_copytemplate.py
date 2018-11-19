@@ -1,8 +1,10 @@
 import fireworks as fw
 import gcmcworkflow as gcwf
 
+import pytest
 import os
 
+@pytest.mark.launchpad
 def test_already_existing(sample_input, launchpad, template_contents):
     """Check that CopyTemplate correctly overwrites an existing Simulation"""
     T = 290.0

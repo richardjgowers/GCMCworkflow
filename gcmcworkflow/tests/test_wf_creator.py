@@ -30,12 +30,14 @@ def LaunchedInitTempFW(InitTempFW, launchpad):
     return
 
 
+@pytest.mark.launchpad
 class TestTemplateInit(object):
     def test_template_creation(self, LaunchedInitTempFW, RASPA_FILES):
         for f in RASPA_FILES:
             assert os.path.exists(os.path.join('template', f))
 
 
+@pytest.mark.launchpad
 class TestTemplateCopy(object):
     DEFAULT_TEMPERATURE = 208.0
     DEFAULT_PRESSURE = 50.0
@@ -96,6 +98,7 @@ def run_raspa(short_raspa, launchpad):
                        spec={'simtree': short_raspa})
     launchpad(fw.Workflow([job]))
 
+@pytest.mark.launchpad
 class TestSimulationRun(object):
     @pytest.mark.skip
     def test_run_simulation(self, run_raspa):

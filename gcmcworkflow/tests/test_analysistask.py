@@ -67,11 +67,14 @@ def successful_raspa_results():
         (67300, 2.6989332935),
     ]
 
+
+@pytest.mark.launchpad
 def test_analysis_creates_file(analysis_task):
     assert os.path.exists(os.path.join(analysis_task, 'this_sim_results.csv'))
     assert os.path.exists(os.path.join(analysis_task, 'total_results.csv'))
 
 
+@pytest.mark.launchpad
 def test_results(analysis_task, successful_raspa_results):
     fname = os.path.join(analysis_task, 'fw_spec.json')
     with open(fname, 'r') as inf:
@@ -93,6 +96,7 @@ def test_results(analysis_task, successful_raspa_results):
         assert loading == pytest.approx(ref_loading)
 
 
+@pytest.mark.launchpad
 def test_previous_results(analysis_task_with_previous, successful_raspa_results):
     fname = os.path.join(analysis_task_with_previous, 'fw_spec.json')
     with open(fname, 'r') as inf:
