@@ -6,16 +6,18 @@ from . import firetasks
 from . import grids
 from . import hyd
 
+DEFAULT_MAX_ITERATIONS = 4
+DEFAULT_NCYCLES = 2000
+DEFAULT_G_REQ = 5
 
-def make_workflow(spec, simple=False):
+
+def make_workflow(spec):
     """Create an entire Isotherm creation Workflow
 
     Parameters
     ----------
     spec : dict
       has all the information for workflow
-    simple : bool, optional
-      use decorrelation analysis to determine if to run more sims
 
     Returns
     -------
@@ -23,13 +25,13 @@ def make_workflow(spec, simple=False):
       Workflow object ready to submit to LaunchPad
     """
     nparallel = spec['nparallel']
-    ncycles = spec['ncycles']
+    ncycles = DEFAULT_NCYCLES  # starting guess for ncycles
     template = spec['template']
     workdir = spec['workdir']
     wfname = spec['name']
     use_grid = spec.get('use_grid', False)
-    g_req = spec.get('g_req', None)
-    max_iters = spec.get('max_iterations', None)
+    g_req = spec.get('g_req', DEFAULT_G_REQ)
+    max_iters = spec.get('max_iterations', DEFAULT_MAX_ITERATIONS)
 
     init = make_init_stage(
         workdir=workdir,
@@ -57,9 +59,9 @@ def make_workflow(spec, simple=False):
                 wfname=wfname,
                 template=template,
                 workdir=workdir,
-                simple=simple,
-                use_grid=use_grid,
                 g_req=g_req,
+                use_grid=use_grid,
+                iteration=0,
                 max_iterations=max_iters,
             )
             simulation_steps.extend(this_condition)
@@ -220,10 +222,10 @@ def make_runstage(parent_fw, temperature, pressure, ncycles, parallel_id,
 
 
 def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
-                        wfname, template, workdir, simple,
+                        wfname, template, workdir, g_req,
+                        iteration, max_iterations,
                         previous_results=None, previous_simdirs=None,
-                        use_grid=False, g_req=None,
-                        iteration=None, max_iterations=None):
+                        use_grid=False):
     """Make many Simfireworks for a given conditions
 
     Parameters
@@ -242,20 +244,19 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
       path to template files
     workdir : str
       path to where to store results
-    simple : bool
-      complex recycle loop or not
+    g_req : float
+      number of decorrelations to sample
     previous_results : dict, optional
       mapping of parallel_id to previous results
     previous_simdirs : dict, optional
       mapping of parallel_id to directory where sim took place
     use_grid : bool, optional
       whether to use an energy grid
-    g_req : float, optional
-      number of decorrelations to sample
-    iteration : int, optional
-      iteration number for this sampling, defaults to 0
-    max_iterations : int, optional
-      maximum number of iterations to allow, defaults to infinite
+    iteration : int
+      iteration number for this sampling, use 0 for first iteration
+    max_iterations : int
+      maximum number of iterations to allow, defaults to
+      DEFAULT_MAX_ITERATIONS
 
     Returns
     -------
@@ -269,9 +270,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
 
     runs = []
     postprocesses = []
-
-    if iteration is None:
-        iteration = 0
 
     for i in range(nparallel):
         copy, run, postprocess = make_runstage(
@@ -296,7 +294,6 @@ def make_sampling_point(parent_fw, temperature, pressure, ncycles, nparallel,
             temperature=temperature,
             pressure=pressure,
             workdir=workdir,
-            simple=simple,
             use_grid=use_grid,
             g_req=g_req,
             iteration=iteration,

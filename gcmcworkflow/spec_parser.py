@@ -18,8 +18,9 @@ def generate_spec():
         out.write('name:                    # name of the workflow, must be unique on launchpad\n')
         out.write('template:                # path to directory to use as template\n')
         out.write('workdir:                 # path to store results in\n')
-        out.write('pressures: [1k, 2k, 3k]  # list of pressures to run, can use k/M suffix \n')
-        out.write('temperatures: [1, 2, 3]  # list of temperatures to run\n')
+        out.write('conditions:              # list of conditions to sample\n')
+        out.write(' - pressures: [1k, 2k, 3k]  # list of pressures to run, can use k/M suffix \n')
+        out.write('   temperatures: [1, 2, 3]  # list of temperatures to run\n')
 
 
 def read_spec(path):
@@ -105,11 +106,6 @@ def read_spec(path):
         output['nparallel'] = int(raw['nparallel'])
     except KeyError:
         output['nparallel'] = 1
-
-    try:
-        output['ncycles'] = int(raw['ncycles'])
-    except KeyError:
-        output['ncycles'] = 1000  # default ncycles
 
     try:
         output['max_iterations'] = int(raw['max_iterations'])

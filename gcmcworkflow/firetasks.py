@@ -483,9 +483,6 @@ class Analyse(fw.FiretaskBase):
 
     Gathers together timeseries from all parallel runs
 
-    If simple:
-      take off eq period and assume that's enough
-
     Else:
       take off eq period
       estimate g based on eq time (g == eq)
@@ -494,8 +491,9 @@ class Analyse(fw.FiretaskBase):
       else:
         issue more sampling
     """
-    required_params = ['temperature', 'pressure', 'workdir', 'iteration']
-    optional_params = ['simple', 'use_grid', 'g_req', 'max_iterations']
+    required_params = ['temperature', 'pressure', 'workdir', 'iteration',
+                       'g_req', 'max_iterations']
+    optional_params = ['use_grid']
 
     def prepare_resample(self, previous_simdirs, previous_results, ncycles,
                          wfname, template):
@@ -532,13 +530,12 @@ class Analyse(fw.FiretaskBase):
             wfname=wfname,
             template=template,
             workdir=self['workdir'],
-            simple=self['simple'],
             previous_results=previous_results,
             previous_simdirs=previous_simdirs,
             use_grid=self.get('use_grid', False),
-            g_req=self.get('g_req', None),
+            g_req=self['g_req'],
             iteration=self['iteration'] + 1,
-            max_iterations=self.get('max_iterations', None),
+            max_iterations=self['max_iterations'],
         )
 
         return fw.Workflow(runs + [pps])
@@ -547,12 +544,9 @@ class Analyse(fw.FiretaskBase):
         timeseries = {p_id: utils.make_series(ts)
                       for (p_id, ts) in fw_spec['results']}
 
-        simple = self.get('simple', True)
-
         g = 0.0
-        g_req = self.get('g_req', None)
-        if g_req is None:
-            g_req = 5.0
+        g_req = self['g_req']
+
         means = []
         stds = []
         eqs = {}
@@ -573,21 +567,17 @@ class Analyse(fw.FiretaskBase):
                 stds.append(production.std())
                 eqs[p_id] = eq
 
-        if equilibrated and (simple or (g > g_req)):
-            finished = True
+        if equilibrated:
             mean = np.mean(means)
             std = np.mean(stds)
         else:
-            finished = False
+            mean, std = None, None
 
+        # have we gathered enough data
+        finished = (g > g_req)
         # Check if we've reached max iterations
-        if not finished and self['iteration'] + 1 >= (self.get('max_iterations', None) or np.inf):
-            timeout = True
-            mean = None
-            std = None
-            g = None
-        else:
-            timeout = False
+        timeout = (not finished and
+                   self['iteration'] + 1 >= self['max_iterations'])
 
         if finished or timeout:
             return fw.FWAction(
@@ -606,6 +596,8 @@ class Analyse(fw.FiretaskBase):
                 }],
             )
         else:
+            # not finished, but more iterations allowed
+            # perform more sampling
             if not equilibrated:
                 # double previous length
                 ts = list(timeseries.values())[0]
