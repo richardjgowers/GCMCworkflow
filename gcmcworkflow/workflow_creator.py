@@ -1,14 +1,15 @@
 import itertools
 import fireworks as fw
 
+from . import (
+    DEFAULT_MAX_ITERATIONS,
+    DEFAULT_NCYCLES,
+    DEFAULT_G_REQ,
+)
 from . import utils
 from . import firetasks
 from . import grids
 from . import hyd
-
-DEFAULT_MAX_ITERATIONS = 4
-DEFAULT_NCYCLES = 2000
-DEFAULT_G_REQ = 5
 
 
 def make_workflow(spec):

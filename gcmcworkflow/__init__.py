@@ -1,5 +1,9 @@
 __version__ = '0.6.0'
 
+DEFAULT_MAX_ITERATIONS = 4
+DEFAULT_NCYCLES = 2000
+DEFAULT_G_REQ = 5
+
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -24,8 +28,6 @@ from . import grids
 
 from . import workflow_creator
 from .workflow_creator import make_workflow
-
-from . import packer
 
 from . import genetics
 from . import make_genetics
