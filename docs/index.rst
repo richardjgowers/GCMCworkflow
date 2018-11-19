@@ -6,6 +6,9 @@
 Welcome to GCMCWorkflow's documentation!
 ========================================
 
+Welcome to the documentation for GCMCWorkflow, a package
+for automating Grand Canonical Monte Carlo sampling of porous materials.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -15,6 +18,3 @@ Welcome to GCMCWorkflow's documentation!
    tutorial
    usage
    methods
-
-
-Hello this is the home page.
