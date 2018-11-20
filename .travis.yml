@@ -1,16 +1,19 @@
 stages:
 - name: test
-  if: branch = master
 - name: pypi
-  if: type = push
+  if: tag IS present
+
 language: python
 services: mongodb
 cache: pip
+
 python:
 - '3.6'
+
 install:
 - pip install -r requirements.txt -e .
 - pip install pytest-cov codecov
+
 jobs:
   include:
   - script: pytest -v --cov=./gcmcworkflow
