@@ -27,6 +27,8 @@ Options:
   -v --version
   -l LAUNCHPAD  Launchpad yaml file (job database)
 """
+from __future__ import print_function
+
 from collections import Counter
 from termcolor import colored
 import docopt
@@ -71,7 +73,13 @@ if __name__ == '__main__':
         specs = gcwf.read_spec(args['<wf_specfile>'])
         wf = gcwf.make_workflow(specs) #, simple=args['--simple'])
 
-        gcwf.launchpad_utils.submit_workflow(wf, lpspec=args['-l'])
+        try:
+            gcwf.launchpad_utils.submit_workflow(wf, lpspec=args['-l'])
+        except:
+            print("ERROR: Failed to submit workflow!")
+            raise
+        else:
+            print("Workflow succesfully submitted!")
     elif args['list']:
         names = gcwf.launchpad_utils.get_workflow_names(lpspec=args['-l'])
 

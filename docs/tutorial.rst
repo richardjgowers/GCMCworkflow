@@ -54,10 +54,28 @@ Explaining the spec file lines:
 Submitting work to LaunchPad
 """"""""""""""""""""""""""""
 
-Now we've defined our input and desired sampling
-we need to submit this information to our LaunchPad.
+Now we've defined our input and desired sampling we need to submit
+this information to our LaunchPad.
+Most of the time (unless you are locally running a MongoDB server)
+you will have a file called ``my_launchpad.yaml`` which holds the
+details to connect to the Fireworks LaunchPad.
 
-- check launchpad connectivity
+Before submitting work to the LaunchPad it is a good idea to check the
+connection.
+This can be done using ``lpad report``, which will
+return a quick description of the status of the LaunchPad.  If this step
+does not work, consult the :ref:`launchpad_setup` instructions.
+
+To submit the workflow to the LaunchPad we call::
+
+  gcmcworkflow submit spec.yml -l my_launchpad.yaml
+
+This reads the spec file we just created, translates this into a
+Fireworks Workflow, and submits this to the Fireworks LaunchPad.
+We can inspect the Workflow using Fireworks commands, such as
+the web gui (``lpad webgui``) or through some lighter inbuilt
+GCMCWorkflow tools such as ``gcmcworkflow check``.
+
 
 Running our Workflow
 """"""""""""""""""""

@@ -17,6 +17,8 @@ or pip_::
 .. _Pip: https://pypi.org
 
 
+.. _launchpad_setup:
+
 Setting up a Launchpad
 """"""""""""""""""""""
 
