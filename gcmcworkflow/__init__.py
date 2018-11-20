@@ -1,5 +1,3 @@
-__version__ = '0.6.0'
-
 DEFAULT_MAX_ITERATIONS = 4
 DEFAULT_NCYCLES = 2000
 DEFAULT_G_REQ = 5
@@ -37,3 +35,7 @@ from .poreblazer import PoreblazerTask
 from . import launchpad_utils
 
 from .tests import run_tests
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

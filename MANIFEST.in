@@ -1,1 +1,2 @@
-recursive-include gcmcworkflow/tests/ *
+recursive-include gcmcworkflow/tests/ *include versioneer.py
+include gcmcworkflow/_version.py
