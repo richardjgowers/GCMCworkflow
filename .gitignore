@@ -14,3 +14,4 @@ build/
 .pytest_cache
 docs/_build
 *.DS_STORE
+my_launchpad.yaml
