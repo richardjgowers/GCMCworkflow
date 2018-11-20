@@ -2,18 +2,14 @@ stages:
 - name: test
 - name: pypi
   if: tag IS present
-
 language: python
 services: mongodb
 cache: pip
-
 python:
 - '3.6'
-
 install:
 - pip install -r requirements.txt -e .
 - pip install pytest-cov codecov
-
 jobs:
   include:
   - script: pytest -v --cov=./gcmcworkflow
@@ -24,5 +20,8 @@ jobs:
     deploy:
       provider: pypi
       user: richard.j.gowers
-      password:
-        secure: AbPEhtHbNQOonXF4yPDeJ3toKzpVR3Uzwq1sATQRf3ut6pgozQbhcCDp3XZqqCwSFw0X6mTaLmoKjQOwmS3PRWklBGbH3y8EobjcrkKwDkvTd7TKHsThlHRoksNPzZSP+GNGZKLapM7SS7UpcXZamzmnMwj7KpMZsEeIxdhGwND/0TLXot308UyL82JhGHApyHTteL9YnUFcnT7c5YmTA3/xw8y8xj+LPMtvrY0Cyb8rsU/AGezYJc45c75umXxYp0BYOfqV5ObAAxc3SYDbat6Zjr7izdVmazqpUjQx3bVLkTFXkv20Wsp5M0pPFILlpfKD+58q8mCHRcwdCk5od+uLtwBlicaxcd3xUoVnweXCAohTny0JE8XHKVK4dhYO8JjbKgwUscipq7l9P0yiDe/K5KONR9frC7uPQSSTgVGcbghtPIbV7HdHMJGbBcSJgHBOD1uMEy1CkaAtdQ7aHP5hPHkTbQVYEeHWGmlciBHU62Wz76rc00hY11jp7DfwQ/8w+o6qFD0AZ5vPVaL7cMl8ZuJBvUr6yuznw/P0tGKmTPlxaQM3p53PKgFdfHs9WRF8JFjmGJkQd3kv/V3ZRpfcLK88pKQXegKHa0s5AykM1SWcBVaHv2bQzd754J5LTHsVNZ4k5KWK8VGmV4iDyk8uCRca6MlKrhCauQusxBo=
+      on:
+        tags: true
+env:
+  global:
+    secure: CVEqbywhFobHwigblyz2h8X/koiJcY3s29ha9jSTV2vUE5Wg0HpB7z8yHMLiB1r5Mmn/kaIpk/jdg0ygKrEwCd0+c8+bgwcpRciLcIy4edydMFS04XuELQtw+F0Y5IDEFw2OybG34wWy7Z9kVh4rSolgHL26bF2Ol2Z4nEqi+IOwU2r0afZOGBZLfvSJVKDEoeyiTnZ1xF7RE9EirPVl6lO9XIcQX6tGa888nUv39/7ui+1JZImlhpyHO+XuHF395poTXMEJARYydkpITJa7YZieTD9FRsoRSHP3We8QJCMeeTetwHZLqYRcr4f/yLlcEv/rBI1nM4TJK5s+8lst2EtFFZX7cXyOMTuYAdYw1XO+idbL5CaZmN8NGf72lHkt2JnyD7Z+mSlj2CevPe9LliYCppxspVHzBDKKTM1d30cvsjhKa03i7t0Ta4z36XN+b4hg35se2ZyPPmSL+s9InkUsjOKQ5ISS7HfFtwClxi6rE6sgUlPlKqE3C2NgAaFlyZTI+xycWcQ9qd1263X64DMRPTuR7BgyVV8H80mbl1sUoeW1Anzr0dA4Tkhxa5UJfK9/cJAuBwM/LxO566kY2BX1351+y2ZyEL9Zqo7G2O6CzP7V0aRpFPB59ScuStorJN4XOg8Iw8ciH3K/nIRHkTWxA0J0dtZmk1iN5h+Q6y8=
