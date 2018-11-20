@@ -1,7 +1,7 @@
 stages:
 - name: test
 - name: pypi
-  if: tag IS present
+  if: tag IS present and tag =~ ^v\d
 language: python
 services: mongodb
 cache: pip
@@ -21,6 +21,7 @@ jobs:
       provider: pypi
       user: richard.j.gowers
       on:
+        all_branches: true
         tags: true
 env:
   global:
